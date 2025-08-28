@@ -1,57 +1,38 @@
 <mujoco model="shadow_hand_scene">
+	<statistic extent="0.3" center="0.3 0 0"/>
+	<option gravity="0 0 0"/>
+	<visual>
+		<rgba haze="0.15 0.25 0.35 1"/>
+		<quality shadowsize="8192"/>
+		<global azimuth="220" elevation="-30"/>
+	</visual>
 
-  <statistic extent="0.3" center="0.3 0 0"/>
-  <option gravity="0 0 0"/>
+	<asset>
+		<texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+		<texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="300" height="300"/>
+		<material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2"/>
+		<!-- Load the hand model as an asset model (do NOT <include> it) -->
+		<model name="shadow_hand_model" file="right_hand.xml"/>
+	</asset>
 
-  <visual>
-    <rgba haze="0.15 0.25 0.35 1"/>
-    <quality shadowsize="8192"/>
-    <global azimuth="220" elevation="-30"/>
-  </visual>
+	<worldbody>
+		<light pos="0 0 1"/>
+		<light pos="0.3 0 1.5" dir="0 0 -1" directional="true"/>
+		<geom name="floor" pos="0 0 0" size="0 0 0.05" type="plane" material="groundplane" contype="0" conaffinity="0" rgba="0.2 0.3 0.4 0.1"/>
 
-  <asset>
-    <!-- Ground visuals -->
-    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
-    <texture type="2d" name="groundplane" builtin="checker" mark="edge"
-             rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8"
-             width="300" height="300"/>
-    <material name="groundplane" texture="groundplane" texuniform="true"
-              texrepeat="5 5" reflectance="0.2"/>
-
-    <!-- Load the hand model as an asset model (do NOT <include> it) -->
-    <model name="shadow_hand_model" file="right_hand.xml"/>
-  </asset>
-
-  <worldbody>
-    <light pos="0 0 1"/>
-    <light pos="0.3 0 1.5" dir="0 0 -1" directional="true"/>
-    <geom name="floor" pos="0 0 0" size="0 0 0.05" type="plane" material="groundplane" contype="0" conaffinity="0" rgba="0.2 0.3 0.4 0.1"/>
-
-    <!-- Mocap target you’ll move from Python -->
-    <body name="hand_target" mocap="true" pos="0 0 0.8">
-      <geom type="box" size="0.01 0.01 0.04" rgba="1 0 0 0.3" contype="0" conaffinity="0" group="1"/>
+		<body name="hand_root" pos="0 0 0.8">
+      <freejoint name="hand_free"/>
+      <!-- Move the attached model so the wrist/palm aligns with hand_root origin.
+          Example: if wrist is 0.30 m +x from the forearm frame, shift forearm back by -0.30 -->
+      <body name="hand_offset" pos="-0.3 0 0">   <!-- adjust this vector once -->
+        <attach model="shadow_hand_model" body="rh_forearm" prefix=""/>
+      </body>
     </body>
 
-    <!-- Free-floating wrapper for the entire hand -->
-    <body name="hand_root" pos="0 0 0.8">
-      <freejoint/>
-      <!-- Attach the subtree from right_hand.xml under this freejoint parent -->
-      <!-- Keep original names (prefix="") so 'rh_forearm' etc. still exist -->
-      <attach model="shadow_hand_model" body="rh_forearm" prefix=""/>
-    </body>
-
-    <!-- Example prop -->
-    <body name="can" pos="0 0 0">
-      <freejoint/>  <!-- makes the can a free-floating dynamic body -->
-      <geom type="cylinder" size="0.037 0.13"
-            mass="0.20" friction="1.1 0.01 0.001"
-            rgba="0.8 0.7 0.5 1"/>
-    </body>
-  </worldbody>
-
-  <equality>
-    <!-- Weld the whole hand (via its freejoint parent) to the mocap -->
-    <weld body1="hand_target" body2="hand_root"
-          relpose="-0.3 0 0 1 0 0 0" solref="0.001 1" solimp="0.9 0.95 0.001"/>
-  </equality>
+		<body name="can" pos="0 0 0">
+			<freejoint/>
+			<!-- makes the can a free-floating dynamic body -->
+			<geom type="cylinder" size="0.037 0.13" mass="0.20" friction="1.1 0.01 0.001" rgba="0.8 0.7 0.5 1"/>
+		</body>
+	</worldbody>
 </mujoco>
