@@ -197,9 +197,14 @@ class RobotGrasping:
             self,
     ):
         # load from local save the initialized scene for faster computation
-        self.sim_engine.load_state_from_local_save(
-            bullet_client=self._bullet_client,
-        )
+        # Skip state restoration in debug mode as it can cause issues with GUI mode
+        if not self.is_debug_mode():
+            self.sim_engine.load_state_from_local_save(
+                bullet_client=self._bullet_client,
+            )
+        else:
+            # In debug mode, reinitialize from scratch to avoid state restoration issues
+            self.sim_engine.reset(bullet_client=self._bullet_client)
 
     def close(self):
         is_bullet_client_on = self.physics_client_id >= 0
