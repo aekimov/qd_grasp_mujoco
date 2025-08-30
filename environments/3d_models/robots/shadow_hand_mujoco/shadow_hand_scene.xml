@@ -21,18 +21,18 @@
 		<geom name="floor" pos="0 0 0" size="0 0 0.05" type="plane" material="groundplane" contype="0" conaffinity="0" rgba="0.2 0.3 0.4 0.1"/>
 
 		<body name="hand_root" pos="0 0 0.8">
-      <freejoint name="hand_free"/>
-      <!-- Move the attached model so the wrist/palm aligns with hand_root origin.
-          Example: if wrist is 0.30 m +x from the forearm frame, shift forearm back by -0.30 -->
-      <body name="hand_offset" pos="-0.3 0 0">   <!-- adjust this vector once -->
-        <attach model="shadow_hand_model" body="rh_forearm" prefix=""/>
-      </body>
-    </body>
+			<freejoint name="hand_free"/>
+			<!-- Move the attached model so the wrist/palm aligns with hand_root origin.
+				Example: if wrist is 0.30 m +x from the forearm frame, shift forearm back by -0.30 -->
+			<body name="hand_offset" pos="-0.3 0 0">   <!-- adjust this vector once -->
+				<attach model="shadow_hand_model" body="rh_forearm" prefix=""/>
+			</body>
+    	</body>
 
 		<body name="can" pos="0 0 0">
-			<freejoint/>
+			<freejoint name="can_free"/>
 			<!-- makes the can a free-floating dynamic body -->
-			<geom type="cylinder" size="0.037 0.13" mass="0.20" friction="1.1 0.01 0.001" rgba="0.8 0.7 0.5 1"/>
+			<geom type="cylinder" size="0.037 0.13" mass="0.20" friction="1 0.01 0.001" rgba="0.8 0.7 0.5 1"/>
 		</body>
 	</worldbody>
 </mujoco>

@@ -1,5 +1,3 @@
-import pdb
-
 import xml.etree.ElementTree as ET
 from pathlib import Path
 import numpy as np
@@ -18,7 +16,6 @@ DEFAULT_OBJECT_ORIENT = [0, 0, 0, 1]
 class BulletSimObject:
     def __init__(self, bullet_client, name):
 
-        self.frictions = None  # dict containing friction parameters
         self.object_name = None  # striped object name
         self.obj_id = None  # id associated with the object in the bullet simulation
         self._path2obj_point_cloud = None
@@ -70,7 +67,6 @@ class BulletSimObject:
 
         self.object_name = self._init_object_name(name)
         self._load_object_bullet(bullet_client=bullet_client)
-        self.frictions = self._init_frictions(bullet_client=bullet_client)
 
         path2obj_point_cloud = self.extract_path2obj_contact_point_cloud_from_urdf(object_name=name)
         precise_vertices_point, mesh, triangles = self.import_point_cloud_from_obj(path2obj_point_cloud)
@@ -142,11 +138,6 @@ class BulletSimObject:
         )
 
         self.obj_id = obj_to_grab_id
-
-    def _init_frictions(self, bullet_client):
-        dynamicsInfo = bullet_client.getDynamicsInfo(self.obj_id, -1)  # save intial friction coefficient of the object
-        frictions = {'lateral': dynamicsInfo[1], 'rolling': dynamicsInfo[6], 'spinning': dynamicsInfo[7]}
-        return frictions
 
     def update_infos(self, bullet_client, info):
         is_obj_initialized = self.obj_id is not None
