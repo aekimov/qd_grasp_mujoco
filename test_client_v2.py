@@ -1,13 +1,33 @@
 from environments.src.mujoco_simulation.mj_client import MjClient
+import environments.src.robots.mj_shadow_hand_consts as sh_consts
+import time 
 
 XML_PATH = "environments/3d_models/robots/shadow_hand_mujoco/shadow_hand_scene.xml"
 
 client = MjClient(XML_PATH, display=True)
 
-while client.viewer and client.viewer.is_running():
-    client.drive_actuator_to_max("rh_A_FFJ3", steps=100, animate=True)
+# client.close_gripper("rh_A_FFJ3")
+client.reset_robot_fingers()
+client.close_gripper(actuator_names=sh_consts.GRIPPER_ACTUATORS_ALL_FINGERS)
 
-client.close_viewer()
+print("Resetting robot fingers")
+client.reset_robot_fingers()
+
+while client.viewer and client.viewer.is_running():
+    client.viewer.sync()     # redraw same frame
+    # time.sleep(1/60)       # optional pacing
+    
+
+# while client.viewer and client.viewer.is_running():
+#    client.step(1, sync=True)
+
+# client.close_viewer()
+
+
+# client.servo_ramp("rh_A_FFJ3", secs=5.0)
+
+# while client.viewer and client.viewer.is_running():
+#     client.step(1, sync=True)
 
 
 # poses = [

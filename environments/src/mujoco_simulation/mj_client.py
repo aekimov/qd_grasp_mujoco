@@ -1,6 +1,12 @@
 import mujoco
 import numpy as np
 from typing import Tuple
+import time
+
+import environments.src.robots.mj_shadow_hand_consts as sh_consts
+
+MAX_STEP_CLOSE_GRIP = 100
+TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC = 0.02 * 2
 
 class MjClient:
     def __init__(self, xml_path: str, display: bool = False):
@@ -23,6 +29,8 @@ class MjClient:
     def open_viewer(self):
         if self.viewer is None:
             self.viewer = mujoco.viewer.launch_passive(self.model, self.data)
+            self.viewer.cam.lookat[2] += 0.5
+
 
     def close_viewer(self):
         if self.viewer is not None:
@@ -66,33 +74,94 @@ class MjClient:
         
     def reset_object_pose(self):
         self.set_6dof_pose_object(self.default_object_pose, self.default_object_orient)
+    
+    # def reset_robot_fingers(self):
+    #     for actuator_name, default_val in sh_consts.DEFAULT_JOINT_STATES.items():
+    #         aid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_ACTUATOR, actuator_name)
+    #         self.data.ctrl[aid] = default_val
+
+    #     mujoco.mj_forward(self.model, self.data)
         
+    #     if self.viewer:
+    #         self.viewer.sync()
+            
+    def reset_robot_fingers(self):
+        m, d = self.model, self.data
+
+        for actuator_name, default_val in sh_consts.DEFAULT_JOINT_STATES.items():
+            aid = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_ACTUATOR, actuator_name)
+            
+            if actuator_name in sh_consts.TENDON_TO_JOINTS:
+                    joint_names = sh_consts.TENDON_TO_JOINTS[actuator_name]
+                    share = float(default_val) / len(joint_names) # split the desired tendon target evenly across its joints
+                    for jname in joint_names:
+                        jid = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_JOINT, jname)
+                        qadr = m.jnt_qposadr[jid]
+                        dadr = m.jnt_dofadr[jid]
+                        d.qpos[qadr] = share
+                        d.qvel[dadr] = 0.0
+            else:
+                target_id = int(m.actuator_trnid[aid, 0])
+                qadr = m.jnt_qposadr[target_id]
+                dadr = m.jnt_dofadr[target_id]
+                d.qpos[qadr] = float(default_val)
+                d.qvel[dadr] = 0.0
+
+        mujoco.mj_forward(m, d)
+        
+        if self.viewer:
+            self.viewer.sync()
+
+             
     def reset(self):
         self.reset_gripper_pose()
         self.reset_object_pose()
+        self.reset_robot_fingers()
     
-    def step(self, n: int = 1, sync: bool = False):
-        for _ in range(n):
-            mujoco.mj_step(self.model, self.data)
-            if sync and self.viewer is not None:
-                self.viewer.sync()
-                 
-    def get_actuator_info(self, actuator_name: str) -> dict:
-        aid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_ACTUATOR, actuator_name)
-        lo, hi   = self.model.actuator_ctrlrange[aid]
-        flo, fhi = self.model.actuator_forcerange[aid]
-
-        return {
-            "aid": aid,
-            "low": float(lo),
-            "high": float(hi),
-            "force_low": float(flo),
-            "force_high": float(fhi),
-        }
+    def close_gripper(self, actuator_names: list[str]):
+        actuator_ids = []
+        target_positions = []
         
-    def drive_actuator_to_max(self, actuator_name: str, steps: int, animate: bool) -> None:
-        info = self.get_actuator_info(actuator_name)
-        aid = info["aid"]
-        target = info["high"]
-        self.data.ctrl[aid] = target
-        self.step(steps, sync=animate)
+        for name in actuator_names:
+            aid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_ACTUATOR, name)
+            target = self.model.actuator_ctrlrange[aid][1]
+            actuator_ids.append(aid)
+            target_positions.append(float(target))
+
+        for _ in range(MAX_STEP_CLOSE_GRIP):
+            for aid, target in zip(actuator_ids, target_positions):
+                self.data.ctrl[aid] = target
+
+            mujoco.mj_step(self.model, self.data)
+
+            if self.viewer:
+                self.viewer.sync()
+                time.sleep(TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC)
+            
+            
+
+    # def get_actuator_info(self, actuator_name: str) -> dict:
+    #     aid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_ACTUATOR, actuator_name)
+    #     lo, hi   = self.model.actuator_ctrlrange[aid]
+    #     flo, fhi = self.model.actuator_forcerange[aid]
+
+    #     return {
+    #         "aid": aid,
+    #         "low": float(lo),
+    #         "high": float(hi),
+    #         "force_low": float(flo),
+    #         "force_high": float(fhi),
+    #     }
+            
+    # def close_gripper(self, actuator_name: str):                
+    #     info = self.get_actuator_info(actuator_name)
+    #     aid = info["aid"]
+    #     target = info["high"]
+        
+    #     for _ in range(MAX_STEP_CLOSE_GRIP):
+    #         self.data.ctrl[aid] = target
+    #         mujoco.mj_step(self.model, self.data)
+            
+    #         if self.viewer:
+    #             self.viewer.sync()
+    #             time.sleep(TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC)
