@@ -74,16 +74,6 @@ class MjClient:
         
     def reset_object_pose(self):
         self.set_6dof_pose_object(self.default_object_pose, self.default_object_orient)
-    
-    # def reset_robot_fingers(self):
-    #     for actuator_name, default_val in sh_consts.DEFAULT_JOINT_STATES.items():
-    #         aid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_ACTUATOR, actuator_name)
-    #         self.data.ctrl[aid] = default_val
-
-    #     mujoco.mj_forward(self.model, self.data)
-        
-    #     if self.viewer:
-    #         self.viewer.sync()
             
     def reset_robot_fingers(self):
         m, d = self.model, self.data
@@ -111,7 +101,6 @@ class MjClient:
         
         if self.viewer:
             self.viewer.sync()
-
              
     def reset(self):
         self.reset_gripper_pose()
@@ -137,31 +126,3 @@ class MjClient:
             if self.viewer:
                 self.viewer.sync()
                 time.sleep(TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC)
-            
-            
-
-    # def get_actuator_info(self, actuator_name: str) -> dict:
-    #     aid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_ACTUATOR, actuator_name)
-    #     lo, hi   = self.model.actuator_ctrlrange[aid]
-    #     flo, fhi = self.model.actuator_forcerange[aid]
-
-    #     return {
-    #         "aid": aid,
-    #         "low": float(lo),
-    #         "high": float(hi),
-    #         "force_low": float(flo),
-    #         "force_high": float(fhi),
-    #     }
-            
-    # def close_gripper(self, actuator_name: str):                
-    #     info = self.get_actuator_info(actuator_name)
-    #     aid = info["aid"]
-    #     target = info["high"]
-        
-    #     for _ in range(MAX_STEP_CLOSE_GRIP):
-    #         self.data.ctrl[aid] = target
-    #         mujoco.mj_step(self.model, self.data)
-            
-    #         if self.viewer:
-    #             self.viewer.sync()
-    #             time.sleep(TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC)
