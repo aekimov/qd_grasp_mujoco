@@ -81,7 +81,7 @@ def cvt_genome_to_6dof_pose_contact_strategy_search(robot_grasp_env, genome, rob
         list_of_points_for_each_triangle_object_mesh=robot_grasp_env.list_of_points_for_each_triangle_obj_mesh,
         object_normals_to_triangles=robot_grasp_env.object_normals_to_triangles,
         contact_point=closest_contact_point,
-        debug=True
+        debug=False
     )
 
     gripper_6dof_pose = get_gripper_pose_relatively_to_contact_point_allegro_compatible(

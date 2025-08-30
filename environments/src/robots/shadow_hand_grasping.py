@@ -1,20 +1,12 @@
-import pdb
-
-import numpy as np
 from pathlib import Path
-
-from utils.common_tools import project_from_to_value
-
 from environments.src.robot_grasping import RobotGrasping
 import environments
 import environments.src.env_constants as env_consts
 import environments.src.robots.shadow_hand_consts as sh_consts
 
-import configs.qd_config as qd_cfg
-
 """
     # ---------------------------------------------------------------------------------------- #
-    #                                   ALLEGRO DEXTEROUS HAND
+    #                                   SHADOW DEXTEROUS HAND
     # ---------------------------------------------------------------------------------------- #
 """
 
@@ -63,48 +55,8 @@ class ShadowHand(RobotGrasping):
             **kwargs,
         )
 
-    def _is_gripper_closed(self, action):
-        return action[self.i_action_grip_close] < 0
-
-    def _get_gripper_command(self, action):
-        action_grip_genome_val = action[self.i_action_grip_close]
-        fingers_cmd = [action_grip_genome_val, action_grip_genome_val]
-        return fingers_cmd
-
-    def step(self, action):
-        assert action is not None
-        assert len(action) == self.n_actions
-
-        # Update info
-        self.info['closed gripper'] = self._is_gripper_closed(action)
-
-        # Convert action to a gym-grasp compatible command
-        gripper_command = self._get_gripper_command(action)
-        arm_command = action[:self.i_action_grip_close]
-        robot_command = np.hstack([arm_command, gripper_command])
-
-        # Send the command to the robot
-        return super().step(robot_command)
-
-    def _set_robot_default_state(self):
-        pdb.set_trace()
-        for j_id, pos in sh_consts.DEFAULT_JOINT_STATES.items():
-            self.bullet_client.resetJointState(self.robot_id, j_id, targetValue=pos)
-
-    def _reset_robot(self):
-        self._set_robot_default_state()
-
     def _cvt_genome2synergy_label(self, synergy_label, debug=False):
-        synergy_label_projected = np.round(project_from_to_value(
-            interval_from=qd_cfg.FIXED_INTERVAL_GENOME,
-            interval_to=sh_consts.FIXED_INTERVAL_SYNERGIES,
-            x_start=synergy_label
-        ))
-
-        synergy_str = sh_consts.SYNERGIES_ID_TO_STR[synergy_label_projected]
-        list_id_grip_fingers_actuated = sh_consts.SYNERGIES_STR_TO_J_ID_GRIP_FINGERS_ACTUATED[synergy_str]
-
-        return list_id_grip_fingers_actuated
+        return sh_consts.LIST_ID_GRIPPER_FINGERS_ACTUATORS
 
     def _cvt_genome2init_joint_states(self, init_joint_state_genes):
         raise NotImplementedError('Undefined _cvt_genome2init_joint_states for the current gripper.')

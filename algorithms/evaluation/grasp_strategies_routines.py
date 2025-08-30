@@ -23,10 +23,10 @@ DUMMY_QUATERNION = [0, 0, 0, 1]
 ENTRAXE_DIST_PANDA_2F = 0.08
 
 
-def display_mesh_point_from_array_debug(bullet_client, object_array_points, debug_obj=PATH_TO_SMALL_RED_SPHERE_URDF):
-    for point_in_object_array_points in object_array_points:
-        xyz = point_in_object_array_points
-        sphere = bullet_client.loadURDF(debug_obj, xyz, DUMMY_QUATERNION)
+# def display_mesh_point_from_array_debug(bullet_client, object_array_points, debug_obj=PATH_TO_SMALL_RED_SPHERE_URDF):
+#     for point_in_object_array_points in object_array_points:
+#         xyz = point_in_object_array_points
+#         sphere = bullet_client.loadURDF(debug_obj, xyz, DUMMY_QUATERNION)
 
 
 def get_rotation_matrix_from_an_axis_and_an_angle(direction_vector, theta):
@@ -106,52 +106,52 @@ def normalize_vector(vector):
     return vector / np.linalg.norm(vector)
 
 
-def get_gripper_pose_relative_to_contact_normal(
-        bullet_client,
-        normal_at_contact_point,
-        standoff_from_palm,
-        contact_point,
-        half_aperture_complementary,
-        debug,
-        ksi
-):
-    # Create a base B1 = (normal_at_contact_point_normalized, x_vector_normalized_B1, y_vector_normalized_B1),
-    # where B1 is orthonormal, normal_at_contact_point_normalized is the normal to the surface at contact point, and
-    # x_vector_normalized_B1 and y_vector_normalized_B1 are tangent vector to the surface at contact point.
-    normal_at_contact_point_normalized = normalize_vector(normal_at_contact_point)
+# def get_gripper_pose_relative_to_contact_normal(
+#         bullet_client,
+#         normal_at_contact_point,
+#         standoff_from_palm,
+#         contact_point,
+#         half_aperture_complementary,
+#         debug,
+#         ksi
+# ):
+#     # Create a base B1 = (normal_at_contact_point_normalized, x_vector_normalized_B1, y_vector_normalized_B1),
+#     # where B1 is orthonormal, normal_at_contact_point_normalized is the normal to the surface at contact point, and
+#     # x_vector_normalized_B1 and y_vector_normalized_B1 are tangent vector to the surface at contact point.
+#     normal_at_contact_point_normalized = normalize_vector(normal_at_contact_point)
 
-    x_vector_B1 = generate_orthogonal_vector(normal_at_contact_point_normalized)
-    x_vector_normalized_B1 = normalize_vector(x_vector_B1)
+#     x_vector_B1 = generate_orthogonal_vector(normal_at_contact_point_normalized)
+#     x_vector_normalized_B1 = normalize_vector(x_vector_B1)
 
-    # creation of y_vector_normalized_B1
-    y_vector_B1 = np.cross(x_vector_normalized_B1, normal_at_contact_point_normalized)
-    y_vector_normalized_B1 = normalize_vector(y_vector_B1)
+#     # creation of y_vector_normalized_B1
+#     y_vector_B1 = np.cross(x_vector_normalized_B1, normal_at_contact_point_normalized)
+#     y_vector_normalized_B1 = normalize_vector(y_vector_B1)
 
-    # Apply standoff translation (search variable: d)
-    # x -> x'
-    x_vector_B1_prime = x_vector_normalized_B1 * standoff_from_palm
+#     # Apply standoff translation (search variable: d)
+#     # x -> x'
+#     x_vector_B1_prime = x_vector_normalized_B1 * standoff_from_palm
 
-    # Rotate the vector from the normal based on the cone aperture (search variable: nu)
-    # x' -> x''
-    x_prime_prime_B1 = generate_conic_surface(
-        bullet_client=bullet_client,
-        contact_point=contact_point,
-        y_vector_normalized_B1=y_vector_normalized_B1,
-        theta_rad=half_aperture_complementary,
-        x_vector_B1_prime=x_vector_B1_prime,
-        debug=debug,
-    )
+#     # Rotate the vector from the normal based on the cone aperture (search variable: nu)
+#     # x' -> x''
+#     x_prime_prime_B1 = generate_conic_surface(
+#         bullet_client=bullet_client,
+#         contact_point=contact_point,
+#         y_vector_normalized_B1=y_vector_normalized_B1,
+#         theta_rad=half_aperture_complementary,
+#         x_vector_B1_prime=x_vector_B1_prime,
+#         debug=debug,
+#     )
 
-    # Rotate the vector around the normal to position it on the cone surface (search variable: ksi)
-    # x'' -> x'''
-    x_prime_prime_prime_B1 = rotate_vector_from_axis_and_angle(
-        rotation_axis=normal_at_contact_point_normalized,
-        theta=ksi,
-        vector_u=x_prime_prime_B1
-    )
-    gripper_pose_relative_to_contact_normal = x_prime_prime_prime_B1 + np.array(contact_point)
+#     # Rotate the vector around the normal to position it on the cone surface (search variable: ksi)
+#     # x'' -> x'''
+#     x_prime_prime_prime_B1 = rotate_vector_from_axis_and_angle(
+#         rotation_axis=normal_at_contact_point_normalized,
+#         theta=ksi,
+#         vector_u=x_prime_prime_B1
+#     )
+#     gripper_pose_relative_to_contact_normal = x_prime_prime_prime_B1 + np.array(contact_point)
 
-    return gripper_pose_relative_to_contact_normal
+#     return gripper_pose_relative_to_contact_normal
 
 
 def get_normal_surface_point(
@@ -172,10 +172,10 @@ def get_normal_surface_point(
     return normal_at_contact_point
 
 
-def find_normal_to_vertices_in_the_object(mesh):
-    mesh.compute_vertex_normals()
-    array_normals_to_triangles = np.asarray(mesh.triangle_normals)
-    return array_normals_to_triangles
+# def find_normal_to_vertices_in_the_object(mesh):
+#     mesh.compute_vertex_normals()
+#     array_normals_to_triangles = np.asarray(mesh.triangle_normals)
+#     return array_normals_to_triangles
 
 
 def get_normal_to_surface_at_contact_point(object_normals_to_triangles, id_min_dist_triangle):
@@ -430,70 +430,70 @@ def display_closest_triangle_debug(bullet_client, closest_triangle):
     bullet_client.addUserDebugLine(closest_triangle[2], closest_triangle[0])
 
 
-def get_gripper_orient_relative_to_contact_normal(gripper_wrist_pose, gripper_tip_pose, omega_rad):
+# def get_gripper_orient_relative_to_contact_normal(gripper_wrist_pose, gripper_tip_pose, omega_rad):
 
-    # Get the vector corresponding to grip wrist to tip
-    gripper_wrist2tip_cartesian = gripper_tip_pose - gripper_wrist_pose
+#     # Get the vector corresponding to grip wrist to tip
+#     gripper_wrist2tip_cartesian = gripper_tip_pose - gripper_wrist_pose
 
-    # Convert it to spherical to get compute the corresponding quaternion
-    gripper_wrist2tip_spherical = astropy.coordinates.cartesian_to_spherical(
-        x=gripper_wrist2tip_cartesian[0], y=gripper_wrist2tip_cartesian[1], z=gripper_wrist2tip_cartesian[2]
-    )
-    latitude = gripper_wrist2tip_spherical[1].rad
-    longitude = gripper_wrist2tip_spherical[2].rad
-    gripper_wrist2tip_quat = euler.euler2quat(np.pi + longitude, np.pi / 2 - latitude, np.pi, axes='sxyz')
+#     # Convert it to spherical to get compute the corresponding quaternion
+#     gripper_wrist2tip_spherical = astropy.coordinates.cartesian_to_spherical(
+#         x=gripper_wrist2tip_cartesian[0], y=gripper_wrist2tip_cartesian[1], z=gripper_wrist2tip_cartesian[2]
+#     )
+#     latitude = gripper_wrist2tip_spherical[1].rad
+#     longitude = gripper_wrist2tip_spherical[2].rad
+#     gripper_wrist2tip_quat = euler.euler2quat(np.pi + longitude, np.pi / 2 - latitude, np.pi, axes='sxyz')
 
-    # Rotate hand quaternion by omega_rad around the X axis
-    omega_rotation_quat = Quaternion(axis=[1, 0, 0], angle=omega_rad)  # omega_rad rotation around X
-    rotated_gripper_orient_quat = omega_rotation_quat * gripper_wrist2tip_quat  # combine quaternion rotation
+#     # Rotate hand quaternion by omega_rad around the X axis
+#     omega_rotation_quat = Quaternion(axis=[1, 0, 0], angle=omega_rad)  # omega_rad rotation around X
+#     rotated_gripper_orient_quat = omega_rotation_quat * gripper_wrist2tip_quat  # combine quaternion rotation
 
-    # Return result as array
-    gripper_wrist_orient_quat = rotated_gripper_orient_quat.elements
-    return gripper_wrist_orient_quat
+#     # Return result as array
+#     gripper_wrist_orient_quat = rotated_gripper_orient_quat.elements
+#     return gripper_wrist_orient_quat
 
 
-def get_gripper_pose_relatively_to_contact_point(
-        bullet_client,
-        wrist_palm_offset_gripper,
-        hand_pose_from_contact_params,
-        normal_at_contact_point,
-        contact_point,
-        debug
-):
+# def get_gripper_pose_relatively_to_contact_point(
+#         bullet_client,
+#         wrist_palm_offset_gripper,
+#         hand_pose_from_contact_params,
+#         normal_at_contact_point,
+#         contact_point,
+#         debug
+# ):
 
-    half_aperture = hand_pose_from_contact_params['nu']
-    standoff = hand_pose_from_contact_params['d']
-    ksi = hand_pose_from_contact_params['ksi']
-    wrist_rotation = hand_pose_from_contact_params['omega']
+#     half_aperture = hand_pose_from_contact_params['nu']
+#     standoff = hand_pose_from_contact_params['d']
+#     ksi = hand_pose_from_contact_params['ksi']
+#     wrist_rotation = hand_pose_from_contact_params['omega']
 
-    # Vector orientation is defined with the complementary angle of the half aperture
-    half_aperture_complementary = np.pi / 2 - half_aperture
+#     # Vector orientation is defined with the complementary angle of the half aperture
+#     half_aperture_complementary = np.pi / 2 - half_aperture
 
-    # The standoff search space is limited to the palm-hand distance, but the hand pose is defined at wrist pose
-    standoff_from_palm = standoff + wrist_palm_offset_gripper
+#     # The standoff search space is limited to the palm-hand distance, but the hand pose is defined at wrist pose
+#     standoff_from_palm = standoff + wrist_palm_offset_gripper
 
-    # Get gripper position
-    gripper_wrist_pose = get_gripper_pose_relative_to_contact_normal(
-        bullet_client=bullet_client,
-        normal_at_contact_point=normal_at_contact_point,
-        standoff_from_palm=standoff_from_palm,
-        contact_point=contact_point,
-        half_aperture_complementary=half_aperture_complementary,
-        debug=debug,
-        ksi=ksi
-    )
+#     # Get gripper position
+#     gripper_wrist_pose = get_gripper_pose_relative_to_contact_normal(
+#         bullet_client=bullet_client,
+#         normal_at_contact_point=normal_at_contact_point,
+#         standoff_from_palm=standoff_from_palm,
+#         contact_point=contact_point,
+#         half_aperture_complementary=half_aperture_complementary,
+#         debug=debug,
+#         ksi=ksi
+#     )
 
-    # Get gripper orientation
-    gripper_wrist_orient_quat = get_gripper_orient_relative_to_contact_normal(
-        gripper_wrist_pose=gripper_wrist_pose, gripper_tip_pose=contact_point, omega_rad=wrist_rotation
-    )
+#     # Get gripper orientation
+#     gripper_wrist_orient_quat = get_gripper_orient_relative_to_contact_normal(
+#         gripper_wrist_pose=gripper_wrist_pose, gripper_tip_pose=contact_point, omega_rad=wrist_rotation
+#     )
 
-    gripper_6dof_pose = {
-        'xyz': gripper_wrist_pose.tolist(),
-        'euler_rpy': None,
-        'quaternions': gripper_wrist_orient_quat.tolist()
-    }
-    return gripper_6dof_pose
+#     gripper_6dof_pose = {
+#         'xyz': gripper_wrist_pose.tolist(),
+#         'euler_rpy': None,
+#         'quaternions': gripper_wrist_orient_quat.tolist()
+#     }
+#     return gripper_6dof_pose
 
 
 def get_90_degres_rotation(omega, rot_axis):
@@ -596,79 +596,79 @@ def set_prehensor_from_quaternion_pose_orientation(
     return gripper_wrist_orient_quat
 
 
-def get_gripper_pose_relatively_to_contact_point_allegro_compatible_debug(
-        bullet_client,
-        wrist_palm_offset_gripper,
-        hand_pose_from_contact_params,
-        normal_at_contact_point,
-        contact_point,
-        debug,
-        robot
-):
-    all_gripper_6dof_poses = []
-    half_aperture = hand_pose_from_contact_params['nu']
-    ksi_list = np.linspace(0, 2 * np.pi, 20)
-    for ksi in ksi_list:
-        half_aperture = half_aperture
-        standoff =hand_pose_from_contact_params['d']
-        wrist_rotation = hand_pose_from_contact_params['omega']
+# def get_gripper_pose_relatively_to_contact_point_allegro_compatible_debug(
+#         bullet_client,
+#         wrist_palm_offset_gripper,
+#         hand_pose_from_contact_params,
+#         normal_at_contact_point,
+#         contact_point,
+#         debug,
+#         robot
+# ):
+#     all_gripper_6dof_poses = []
+#     half_aperture = hand_pose_from_contact_params['nu']
+#     ksi_list = np.linspace(0, 2 * np.pi, 20)
+#     for ksi in ksi_list:
+#         half_aperture = half_aperture
+#         standoff =hand_pose_from_contact_params['d']
+#         wrist_rotation = hand_pose_from_contact_params['omega']
 
-        # The standoff search space is limited to the palm-hand distance, but the hand pose is defined at wrist pose
-        standoff_from_palm = standoff + wrist_palm_offset_gripper
+#         # The standoff search space is limited to the palm-hand distance, but the hand pose is defined at wrist pose
+#         standoff_from_palm = standoff + wrist_palm_offset_gripper
 
-        # Create a base B1 = (normal_at_contact_point_normalized, x_vector_normalized_B1, y_vector_normalized_B1),
-        # where B1 is orthonormal, normal_at_contact_point_normalized is the normal to the surface at contact point, and
-        # x_vector_normalized_B1 and y_vector_normalized_B1 are tangent vector to the surface at contact point.
-        normal_at_contact_point_normalized = normalize_vector(normal_at_contact_point)
+#         # Create a base B1 = (normal_at_contact_point_normalized, x_vector_normalized_B1, y_vector_normalized_B1),
+#         # where B1 is orthonormal, normal_at_contact_point_normalized is the normal to the surface at contact point, and
+#         # x_vector_normalized_B1 and y_vector_normalized_B1 are tangent vector to the surface at contact point.
+#         normal_at_contact_point_normalized = normalize_vector(normal_at_contact_point)
 
-        x_vector_B1 = generate_orthogonal_vector(normal_at_contact_point_normalized)
-        x_vector_normalized_B1 = normalize_vector(x_vector_B1)
+#         x_vector_B1 = generate_orthogonal_vector(normal_at_contact_point_normalized)
+#         x_vector_normalized_B1 = normalize_vector(x_vector_B1)
 
-        # creation of y_vector_normalized_B1
-        y_vector_B1 = np.cross(x_vector_normalized_B1, normal_at_contact_point_normalized)
-        y_vector_normalized_B1 = normalize_vector(y_vector_B1)
+#         # creation of y_vector_normalized_B1
+#         y_vector_B1 = np.cross(x_vector_normalized_B1, normal_at_contact_point_normalized)
+#         y_vector_normalized_B1 = normalize_vector(y_vector_B1)
 
-        # Apply standoff translation (search variable: d)
-        # x -> x'
-        x_vector_B1_prime = x_vector_normalized_B1 * standoff_from_palm
+#         # Apply standoff translation (search variable: d)
+#         # x -> x'
+#         x_vector_B1_prime = x_vector_normalized_B1 * standoff_from_palm
 
-        nu_wrap_rad = np.pi / 2 - half_aperture  # nu_wrap_rad deduced form the con revolution angle
-        x_prime_prime_B1 = generate_conic_surface(
-            bullet_client=bullet_client,
-            contact_point=contact_point,
-            y_vector_normalized_B1=y_vector_normalized_B1,
-            theta_rad=nu_wrap_rad,
-            x_vector_B1_prime=x_vector_B1_prime,
-            debug=False
-        )
+#         nu_wrap_rad = np.pi / 2 - half_aperture  # nu_wrap_rad deduced form the con revolution angle
+#         x_prime_prime_B1 = generate_conic_surface(
+#             bullet_client=bullet_client,
+#             contact_point=contact_point,
+#             y_vector_normalized_B1=y_vector_normalized_B1,
+#             theta_rad=nu_wrap_rad,
+#             x_vector_B1_prime=x_vector_B1_prime,
+#             debug=False
+#         )
 
-        x_prime_prime_prime_B1 = rotate_vector_from_axis_and_angle(
-            rotation_axis=normal_at_contact_point_normalized,
-            theta=ksi,
-            vector_u=x_prime_prime_B1
-        )
-        position_prehenseur_inside_cone_world = x_prime_prime_prime_B1 + np.array(contact_point)
-        point_xyz = position_prehenseur_inside_cone_world
+#         x_prime_prime_prime_B1 = rotate_vector_from_axis_and_angle(
+#             rotation_axis=normal_at_contact_point_normalized,
+#             theta=ksi,
+#             vector_u=x_prime_prime_B1
+#         )
+#         position_prehenseur_inside_cone_world = x_prime_prime_prime_B1 + np.array(contact_point)
+#         point_xyz = position_prehenseur_inside_cone_world
 
-        # step4 : revolution around the norma
-        gripper_wrist_pose = point_xyz
+#         # step4 : revolution around the norma
+#         gripper_wrist_pose = point_xyz
 
-        gripper_wrist_orient_quat = set_prehensor_from_quaternion_pose_orientation(
-            gripper_tip_pose=contact_point,
-            gripper_wrist_pose=point_xyz,
-            omega=wrist_rotation,
-            robot=robot  # rotation autour de l'entraxe
-        )
+#         gripper_wrist_orient_quat = set_prehensor_from_quaternion_pose_orientation(
+#             gripper_tip_pose=contact_point,
+#             gripper_wrist_pose=point_xyz,
+#             omega=wrist_rotation,
+#             robot=robot  # rotation autour de l'entraxe
+#         )
 
-        gripper_6dof_pose = {
-            'xyz': gripper_wrist_pose.tolist(),
-            'euler_rpy': None,
-            'quaternions': gripper_wrist_orient_quat.tolist()
-        }
+#         gripper_6dof_pose = {
+#             'xyz': gripper_wrist_pose.tolist(),
+#             'euler_rpy': None,
+#             'quaternions': gripper_wrist_orient_quat.tolist()
+#         }
 
-        all_gripper_6dof_poses.append(gripper_6dof_pose)
+#         all_gripper_6dof_poses.append(gripper_6dof_pose)
 
-    return all_gripper_6dof_poses
+#     return all_gripper_6dof_poses
 
 
 def get_gripper_pose_relatively_to_contact_point_allegro_compatible(
@@ -742,59 +742,59 @@ def get_gripper_pose_relatively_to_contact_point_allegro_compatible(
     return gripper_6dof_pose
 
 
-def get_live_point(alpha, begin_xyz, end_xyz):
-    """ Returns the 3d coordinate of the point live_point that verifies:
-        live_point = alpha * vector_director + begin_xyz
-    """
-    if isinstance(begin_xyz, np.ndarray) and isinstance(end_xyz, np.ndarray):
-        vector_director = end_xyz - begin_xyz
-    else:
-        vector_director = np.array(end_xyz) - np.array(begin_xyz)
-    point_in_line = alpha * vector_director + begin_xyz
-    return point_in_line, vector_director
+# def get_live_point(alpha, begin_xyz, end_xyz):
+#     """ Returns the 3d coordinate of the point live_point that verifies:
+#         live_point = alpha * vector_director + begin_xyz
+#     """
+#     if isinstance(begin_xyz, np.ndarray) and isinstance(end_xyz, np.ndarray):
+#         vector_director = end_xyz - begin_xyz
+#     else:
+#         vector_director = np.array(end_xyz) - np.array(begin_xyz)
+#     point_in_line = alpha * vector_director + begin_xyz
+#     return point_in_line, vector_director
 
 
-def search_first_contact_point_clean(
-        bullet_client, object_id, start_pos_robot_xyz, euler_robot,
-):
-    """Note: Make it works first with the this cylinder trick, then optimize it (avoid object creation)."""
-    link_world_position_robot = start_pos_robot_xyz
-    link_world_orientation = bullet_client.getQuaternionFromEuler(euler_robot)
+# def search_first_contact_point_clean(
+#         bullet_client, object_id, start_pos_robot_xyz, euler_robot,
+# ):
+#     """Note: Make it works first with the this cylinder trick, then optimize it (avoid object creation)."""
+#     link_world_position_robot = start_pos_robot_xyz
+#     link_world_orientation = bullet_client.getQuaternionFromEuler(euler_robot)
 
-    # Set approach direction cylinder
-    cylinder_with_end = bullet_client.loadURDF(
-        PATH_TO_CYLINDER_WITH_LINKS_URDF, link_world_position_robot, link_world_orientation
-    )
-    link_world_position_sphere_end = list(bullet_client.getLinkState(bodyUniqueId=cylinder_with_end, linkIndex=0)[0])
+#     # Set approach direction cylinder
+#     cylinder_with_end = bullet_client.loadURDF(
+#         PATH_TO_CYLINDER_WITH_LINKS_URDF, link_world_position_robot, link_world_orientation
+#     )
+#     link_world_position_sphere_end = list(bullet_client.getLinkState(bodyUniqueId=cylinder_with_end, linkIndex=0)[0])
 
-    # Sphere walk along the direction
-    live_point, vector_director = None, None
-    precision = np.linspace(0, 1, 300)
-    is_contact_point_found = False
-    for alpha in precision:
-        live_point, vector_director = get_live_point(
-            alpha=alpha, begin_xyz=link_world_position_robot, end_xyz=link_world_position_sphere_end
-        )
-        sphere = bullet_client.loadURDF(PATH_SMALL_GREY_SPHERE_URDF, live_point, link_world_orientation)
+#     # Sphere walk along the direction
+#     live_point, vector_director = None, None
+#     precision = np.linspace(0, 1, 300)
+#     is_contact_point_found = False
+#     for alpha in precision:
+#         live_point, vector_director = get_live_point(
+#             alpha=alpha, begin_xyz=link_world_position_robot, end_xyz=link_world_position_sphere_end
+#         )
+#         sphere = bullet_client.loadURDF(PATH_SMALL_GREY_SPHERE_URDF, live_point, link_world_orientation)
 
-        bullet_client.stepSimulation()
-        contact = bullet_client.getContactPoints(bodyA=sphere, bodyB=object_id)
+#         bullet_client.stepSimulation()
+#         contact = bullet_client.getContactPoints(bodyA=sphere, bodyB=object_id)
 
-        bullet_client.removeBody(sphere)
+#         bullet_client.removeBody(sphere)
 
-        if len(contact) != 0:
-            is_contact_point_found = True
-            break
+#         if len(contact) != 0:
+#             is_contact_point_found = True
+#             break
 
-    bullet_client.removeBody(cylinder_with_end)
+#     bullet_client.removeBody(cylinder_with_end)
 
-    return is_contact_point_found, live_point, vector_director
+#     return is_contact_point_found, live_point, vector_director
 
 
-def display_mesh_point_from_array_debug(bullet_client, object_array_points, debug_obj=PATH_TO_SMALL_RED_SPHERE_URDF):
-    for point_in_object_array_points in object_array_points:
-        xyz = point_in_object_array_points
-        sphere = bullet_client.loadURDF(debug_obj, xyz, [0, 0, 0, 1])
+# def display_mesh_point_from_array_debug(bullet_client, object_array_points, debug_obj=PATH_TO_SMALL_RED_SPHERE_URDF):
+#     for point_in_object_array_points in object_array_points:
+#         xyz = point_in_object_array_points
+#         sphere = bullet_client.loadURDF(debug_obj, xyz, [0, 0, 0, 1])
 
 
 def convert_mesh_pose_to_inertial_frame(obj_inertial_pose, meshpose2cvt):
@@ -807,178 +807,178 @@ def convert_mesh_pose_to_inertial_frame(obj_inertial_pose, meshpose2cvt):
     return meshpose2cvt
 
 
-def search_opposite_contact(bullet_client, normal_at_contact_point, contact_point, object_id):
-    normal_at_contact_point_in_contact_point_frame = normal_at_contact_point + contact_point
+# def search_opposite_contact(bullet_client, normal_at_contact_point, contact_point, object_id):
+#     normal_at_contact_point_in_contact_point_frame = normal_at_contact_point + contact_point
 
-    radius_sphere = 0.005
-    nstep = 100
-    precision = np.linspace(1 + radius_sphere, 1.5, nstep)
-    is_opposite_point_found = False
+#     radius_sphere = 0.005
+#     nstep = 100
+#     precision = np.linspace(1 + radius_sphere, 1.5, nstep)
+#     is_opposite_point_found = False
 
-    object_init_pos, object_init_orient_quat = bullet_client.getBasePositionAndOrientation(object_id)
+#     object_init_pos, object_init_orient_quat = bullet_client.getBasePositionAndOrientation(object_id)
 
-    live_point, vector_director = None, None
-    for alpha in precision:
-        live_point, vector_director = get_live_point(
-            alpha=alpha, begin_xyz=normal_at_contact_point_in_contact_point_frame, end_xyz=contact_point
-        )
-        sphere = bullet_client.loadURDF(PATH_SMALL_GREY_SPHERE_URDF, live_point, [0, 0, 0, 1])
-        bullet_client.stepSimulation()
-        contact = bullet_client.getContactPoints(bodyA=sphere, bodyB=object_id)
+#     live_point, vector_director = None, None
+#     for alpha in precision:
+#         live_point, vector_director = get_live_point(
+#             alpha=alpha, begin_xyz=normal_at_contact_point_in_contact_point_frame, end_xyz=contact_point
+#         )
+#         sphere = bullet_client.loadURDF(PATH_SMALL_GREY_SPHERE_URDF, live_point, [0, 0, 0, 1])
+#         bullet_client.stepSimulation()
+#         contact = bullet_client.getContactPoints(bodyA=sphere, bodyB=object_id)
 
-        # object base is not fixed: position must be reset as the sphere makes the object move
-        bullet_client.resetBasePositionAndOrientation(object_id, object_init_pos, object_init_orient_quat)
+#         # object base is not fixed: position must be reset as the sphere makes the object move
+#         bullet_client.resetBasePositionAndOrientation(object_id, object_init_pos, object_init_orient_quat)
 
-        is_sphere_out_of_the_mesh = len(contact) == 0
-        if is_sphere_out_of_the_mesh:
-            is_opposite_point_found = True
-            bullet_client.removeBody(sphere)
-            return is_opposite_point_found, live_point, vector_director.tolist()
-        else:
-            bullet_client.removeBody(sphere)
+#         is_sphere_out_of_the_mesh = len(contact) == 0
+#         if is_sphere_out_of_the_mesh:
+#             is_opposite_point_found = True
+#             bullet_client.removeBody(sphere)
+#             return is_opposite_point_found, live_point, vector_director.tolist()
+#         else:
+#             bullet_client.removeBody(sphere)
 
-    return is_opposite_point_found, live_point, vector_director.tolist()
+#     return is_opposite_point_found, live_point, vector_director.tolist()
 
 
-def angle_between_2_vectors(bullet_client, first_vector, second_vector, debug=True):
-    norm_first_vec = la.norm(first_vector)
-    norm_second_vec = la.norm(second_vector)
-    gamma_rad = np.arccos((np.dot(first_vector, second_vector)) / (norm_first_vec * norm_second_vec))
-    gamma_degrees = gamma_rad * 180 / 3.14
+# def angle_between_2_vectors(bullet_client, first_vector, second_vector, debug=True):
+#     norm_first_vec = la.norm(first_vector)
+#     norm_second_vec = la.norm(second_vector)
+#     gamma_rad = np.arccos((np.dot(first_vector, second_vector)) / (norm_first_vec * norm_second_vec))
+#     gamma_degrees = gamma_rad * 180 / 3.14
 
-    if debug:
-        # Display the two compared vectors in the world frame
-        bullet_client.addUserDebugLine(
-            lineFromXYZ=[0, 0, 0],
-            lineToXYZ=first_vector,
-            lineColorRGB=[0, 0, 0]
-        )
-        bullet_client.addUserDebugLine(
-            lineFromXYZ=[0, 0, 0],
-            lineToXYZ=second_vector,
-            lineColorRGB=[0, 255, 255]
-        )
+#     if debug:
+#         # Display the two compared vectors in the world frame
+#         bullet_client.addUserDebugLine(
+#             lineFromXYZ=[0, 0, 0],
+#             lineToXYZ=first_vector,
+#             lineColorRGB=[0, 0, 0]
+#         )
+#         bullet_client.addUserDebugLine(
+#             lineFromXYZ=[0, 0, 0],
+#             lineToXYZ=second_vector,
+#             lineColorRGB=[0, 255, 255]
+#         )
 
-    return gamma_degrees
+#     return gamma_degrees
 
 
 # [-15, 15, 160, 190] best setup in "a billion ways to grasp" => Pi/6
-def is_inside_antipodal_selectability_cone(gamma, requirement=[-15, 15, 160, 190]):
-    return (requirement[0] < gamma < requirement[1]) or (requirement[2] < gamma < requirement[3])
+# def is_inside_antipodal_selectability_cone(gamma, requirement=[-15, 15, 160, 190]):
+#     return (requirement[0] < gamma < requirement[1]) or (requirement[2] < gamma < requirement[3])
 
 
-def calculate_distance_3d(pointA, pointB):
-    x_wn, y_wn, z_wn = pointA.tolist()[0], pointA.tolist()[1], pointA.tolist()[2]
-    x_contact, y_contact, z_contact = pointB.tolist()[0], pointB.tolist()[1], pointB.tolist()[2]
-    distance = math.sqrt((x_wn - x_contact) ** 2 + (y_wn - y_contact) ** 2 + (z_wn - z_contact) ** 2)
-    return distance
+# def calculate_distance_3d(pointA, pointB):
+#     x_wn, y_wn, z_wn = pointA.tolist()[0], pointA.tolist()[1], pointA.tolist()[2]
+#     x_contact, y_contact, z_contact = pointB.tolist()[0], pointB.tolist()[1], pointB.tolist()[2]
+#     distance = math.sqrt((x_wn - x_contact) ** 2 + (y_wn - y_contact) ** 2 + (z_wn - z_contact) ** 2)
+#     return distance
 
 
-def entreaxe_selectability(point_first, point_second, distance_max=ENTRAXE_DIST_PANDA_2F):
-    is_entraxe_dist_valid = calculate_distance_3d(point_first, point_second) <= distance_max
-    return is_entraxe_dist_valid
+# def entreaxe_selectability(point_first, point_second, distance_max=ENTRAXE_DIST_PANDA_2F):
+#     is_entraxe_dist_valid = calculate_distance_3d(point_first, point_second) <= distance_max
+#     return is_entraxe_dist_valid
 
 
-def entraxe_world_generation(point_in, point_out):
-    Entraxe = (point_out - point_in)
-    midle_entrax_word = Entraxe/2 + point_in
-    return Entraxe, midle_entrax_word
+# def entraxe_world_generation(point_in, point_out):
+#     Entraxe = (point_out - point_in)
+#     midle_entrax_word = Entraxe/2 + point_in
+#     return Entraxe, midle_entrax_word
 
 
-def compute_new_gripper_pose(
-        bullet_client, tau, center_axis_R0, gripper_distance_to_axis, center_axis_mid_point_world
-):
-    q_aroundxaxis_xyzw = get_rotation_around_xaxis(tau=tau)  # plot gripper axis around x
-    q_aroundxaxis_wxyz = Quaternion(
-        a=q_aroundxaxis_xyzw[3],
-        b=q_aroundxaxis_xyzw[0],
-        c=q_aroundxaxis_xyzw[1],
-        d=q_aroundxaxis_xyzw[2]
-    )
+# def compute_new_gripper_pose(
+#         bullet_client, tau, center_axis_R0, gripper_distance_to_axis, center_axis_mid_point_world
+# ):
+#     q_aroundxaxis_xyzw = get_rotation_around_xaxis(tau=tau)  # plot gripper axis around x
+#     q_aroundxaxis_wxyz = Quaternion(
+#         a=q_aroundxaxis_xyzw[3],
+#         b=q_aroundxaxis_xyzw[0],
+#         c=q_aroundxaxis_xyzw[1],
+#         d=q_aroundxaxis_xyzw[2]
+#     )
 
-    x_axis = np.array([1, 0, 0])
-    if are_vectors_colinear(x_axis, center_axis_R0):
-        q_entraxe_world_wxyz = Quaternion(a=1, b=0, c=0, d=0)
-    else:
-        q_entraxe_world_xyzw = get_transform_entraxe_to_xaxis_world(
-            bullet_client=bullet_client, center_axis_R0=center_axis_R0
-        )
-        q_entraxe_world_wxyz = Quaternion(
-            a=q_entraxe_world_xyzw[3],
-            b=q_entraxe_world_xyzw[0],
-            c=q_entraxe_world_xyzw[1],
-            d=q_entraxe_world_xyzw[2])
+#     x_axis = np.array([1, 0, 0])
+#     if are_vectors_colinear(x_axis, center_axis_R0):
+#         q_entraxe_world_wxyz = Quaternion(a=1, b=0, c=0, d=0)
+#     else:
+#         q_entraxe_world_xyzw = get_transform_entraxe_to_xaxis_world(
+#             bullet_client=bullet_client, center_axis_R0=center_axis_R0
+#         )
+#         q_entraxe_world_wxyz = Quaternion(
+#             a=q_entraxe_world_xyzw[3],
+#             b=q_entraxe_world_xyzw[0],
+#             c=q_entraxe_world_xyzw[1],
+#             d=q_entraxe_world_xyzw[2])
 
-    combine_quat_wxyz = q_entraxe_world_wxyz * q_aroundxaxis_wxyz
+#     combine_quat_wxyz = q_entraxe_world_wxyz * q_aroundxaxis_wxyz
 
-    q_rot_wxyz = Quaternion(axis=[0, 0, 1], angle=np.pi/2)
+#     q_rot_wxyz = Quaternion(axis=[0, 0, 1], angle=np.pi/2)
 
-    # /!\ quaternions convention are different for bullet and pyquaternion
-    combine_quat2_wxyz = combine_quat_wxyz * q_rot_wxyz
-    combine_quat2_xyzw = [combine_quat2_wxyz[1],
-                          combine_quat2_wxyz[2],
-                          combine_quat2_wxyz[3],
-                          combine_quat2_wxyz[0]]
+#     # /!\ quaternions convention are different for bullet and pyquaternion
+#     combine_quat2_wxyz = combine_quat_wxyz * q_rot_wxyz
+#     combine_quat2_xyzw = [combine_quat2_wxyz[1],
+#                           combine_quat2_wxyz[2],
+#                           combine_quat2_wxyz[3],
+#                           combine_quat2_wxyz[0]]
 
-    z_axis_wxyz = np.array([0, 0, 0, 1])
-    rotated_z_wxyz = rotate_with_quaternion(combine_quat2_wxyz, z_axis_wxyz)
+#     z_axis_wxyz = np.array([0, 0, 0, 1])
+#     rotated_z_wxyz = rotate_with_quaternion(combine_quat2_wxyz, z_axis_wxyz)
 
-    new_position = np.array(center_axis_mid_point_world) - gripper_distance_to_axis * rotated_z_wxyz[1: 4]
-    new_position = new_position.tolist()
+#     new_position = np.array(center_axis_mid_point_world) - gripper_distance_to_axis * rotated_z_wxyz[1: 4]
+#     new_position = new_position.tolist()
 
-    return new_position, combine_quat2_xyzw
-
-
-def get_rotation_around_xaxis(tau):
-    q = np.array((np.sin(tau / 2) * np.array([1, 0, 0])).tolist() + [
-        np.cos(tau / 2)])  # quaternion representing tau rotation around x axis
-    return q
+#     return new_position, combine_quat2_xyzw
 
 
-def get_transform_entraxe_to_xaxis_world(bullet_client, center_axis_R0):
-
-    center_axis_normalized_R0 = center_axis_R0/np.linalg.norm(center_axis_R0)
-
-    rotation_axis = np.array([1, 0, 0])
-    if (rotation_axis == center_axis_normalized_R0).all():
-        # case when self.x and center_axis_normalized_R0 are colinear => rotate around y
-        rotation_axis = np.array([0, 1, 0])
-
-    normalVector = np.cross(rotation_axis, center_axis_normalized_R0)
-    normalVectorNormalised = normalVector/np.linalg.norm(normalVector)  # n = (u^v)/|u^v|
-
-    cosTheta = np.dot(center_axis_normalized_R0, np.array([1, 0, 0])) #u.v = |u||v|cosTheta
-    sinTheta = np.dot(normalVectorNormalised, normalVector) #(u^v).n = |u||v|sinTheta
-    theta = np.arccos(cosTheta)*np.sign(sinTheta)
-
-    q = np.array((np.sin(theta/2)*normalVectorNormalised).tolist() + [np.cos(theta/2)]) # quaternion representing theta rotation around normalVectorNormalised
-
-    return q
+# def get_rotation_around_xaxis(tau):
+#     q = np.array((np.sin(tau / 2) * np.array([1, 0, 0])).tolist() + [
+#         np.cos(tau / 2)])  # quaternion representing tau rotation around x axis
+#     return q
 
 
-def are_vectors_colinear(U, V):
-    n = U.size
-    normU = normV = scalUV = 0.0
-    for i in range(n):
-        normU = normU + U[i] ** 2
-        normV = normV + V[i] ** 2
-        scalUV = scalUV + U[i] * V[i]
-    normU = np.sqrt(normU)
-    normV = np.sqrt(normV)
-    test = np.abs(scalUV) - normU * normV
-    return np.abs(test) < EPSILON_NUMERICAL_STABILITY
+# def get_transform_entraxe_to_xaxis_world(bullet_client, center_axis_R0):
+
+#     center_axis_normalized_R0 = center_axis_R0/np.linalg.norm(center_axis_R0)
+
+#     rotation_axis = np.array([1, 0, 0])
+#     if (rotation_axis == center_axis_normalized_R0).all():
+#         # case when self.x and center_axis_normalized_R0 are colinear => rotate around y
+#         rotation_axis = np.array([0, 1, 0])
+
+#     normalVector = np.cross(rotation_axis, center_axis_normalized_R0)
+#     normalVectorNormalised = normalVector/np.linalg.norm(normalVector)  # n = (u^v)/|u^v|
+
+#     cosTheta = np.dot(center_axis_normalized_R0, np.array([1, 0, 0])) #u.v = |u||v|cosTheta
+#     sinTheta = np.dot(normalVectorNormalised, normalVector) #(u^v).n = |u||v|sinTheta
+#     theta = np.arccos(cosTheta)*np.sign(sinTheta)
+
+#     q = np.array((np.sin(theta/2)*normalVectorNormalised).tolist() + [np.cos(theta/2)]) # quaternion representing theta rotation around normalVectorNormalised
+
+#     return q
 
 
-def rotate_with_quaternion(quaternion_wxyz, point_wxyz):
-    quaternion_inv_wxyz = Quaternion(
-        a=quaternion_wxyz[0],
-        b=-quaternion_wxyz[1],
-        c=-quaternion_wxyz[2],
-        d=-quaternion_wxyz[3])
-    hamilton = quaternion_wxyz * point_wxyz
-    rotated_point_wxyz = hamilton*quaternion_inv_wxyz
-    rotated_point_wxyz = np.array(
-        [rotated_point_wxyz[0], rotated_point_wxyz[1], rotated_point_wxyz[2], rotated_point_wxyz[3]]
-    )
-    return rotated_point_wxyz
+# def are_vectors_colinear(U, V):
+#     n = U.size
+#     normU = normV = scalUV = 0.0
+#     for i in range(n):
+#         normU = normU + U[i] ** 2
+#         normV = normV + V[i] ** 2
+#         scalUV = scalUV + U[i] * V[i]
+#     normU = np.sqrt(normU)
+#     normV = np.sqrt(normV)
+#     test = np.abs(scalUV) - normU * normV
+#     return np.abs(test) < EPSILON_NUMERICAL_STABILITY
+
+
+# def rotate_with_quaternion(quaternion_wxyz, point_wxyz):
+#     quaternion_inv_wxyz = Quaternion(
+#         a=quaternion_wxyz[0],
+#         b=-quaternion_wxyz[1],
+#         c=-quaternion_wxyz[2],
+#         d=-quaternion_wxyz[3])
+#     hamilton = quaternion_wxyz * point_wxyz
+#     rotated_point_wxyz = hamilton*quaternion_inv_wxyz
+#     rotated_point_wxyz = np.array(
+#         [rotated_point_wxyz[0], rotated_point_wxyz[1], rotated_point_wxyz[2], rotated_point_wxyz[3]]
+#     )
+#     return rotated_point_wxyz
 
