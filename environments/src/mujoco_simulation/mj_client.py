@@ -57,7 +57,8 @@ class MjClient:
         self.data.qpos[adr:adr+3] = pos_xyz
         self.data.qpos[adr+3:adr+7] = orient_quat
         self.data.qvel[vadr:vadr+6] = 0  # Zero base velocities so we don't inject impulses
-        mujoco.mj_forward(self.model, self.data)  # Recompute derived quantities (contacts, kinematics, etc.)
+        
+        self.forward()
         
     def set_6dof_pose_object(self, pos_xyz, orient_quat):
         jid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, "can_free")
@@ -67,8 +68,15 @@ class MjClient:
         self.data.qpos[qadr:qadr+3] = pos_xyz
         self.data.qpos[qadr+3:qadr+7] = orient_quat
         self.data.qvel[vadr:vadr+6] = 0
+        
+        self.forward()
+    
+    def forward(self):
         mujoco.mj_forward(self.model, self.data)
         
+        if self.viewer:
+            self.viewer.sync()
+            
     def reset_gripper_pose(self):
         self.set_6dof_pose_gripper(self.default_gripper_pose, self.default_gripper_orient)
         
@@ -76,31 +84,26 @@ class MjClient:
         self.set_6dof_pose_object(self.default_object_pose, self.default_object_orient)
             
     def reset_robot_fingers(self):
-        m, d = self.model, self.data
-
         for actuator_name, default_val in sh_consts.DEFAULT_JOINT_STATES.items():
-            aid = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_ACTUATOR, actuator_name)
+            aid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_ACTUATOR, actuator_name)
             
             if actuator_name in sh_consts.TENDON_TO_JOINTS:
                     joint_names = sh_consts.TENDON_TO_JOINTS[actuator_name]
                     share = float(default_val) / len(joint_names) # split the desired tendon target evenly across its joints
                     for jname in joint_names:
-                        jid = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_JOINT, jname)
-                        qadr = m.jnt_qposadr[jid]
-                        dadr = m.jnt_dofadr[jid]
-                        d.qpos[qadr] = share
-                        d.qvel[dadr] = 0.0
+                        jid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, jname)
+                        qadr = self.model.jnt_qposadr[jid]
+                        dadr = self.model.jnt_dofadr[jid]
+                        self.data.qpos[qadr] = share
+                        self.data.qvel[dadr] = 0.0
             else:
-                target_id = int(m.actuator_trnid[aid, 0])
-                qadr = m.jnt_qposadr[target_id]
-                dadr = m.jnt_dofadr[target_id]
-                d.qpos[qadr] = float(default_val)
-                d.qvel[dadr] = 0.0
+                target_id = int(self.model.actuator_trnid[aid, 0])
+                qadr = self.model.jnt_qposadr[target_id]
+                dadr = self.model.jnt_dofadr[target_id]
+                self.data.qpos[qadr] = float(default_val)
+                self.data.qvel[dadr] = 0.0
 
-        mujoco.mj_forward(m, d)
-        
-        if self.viewer:
-            self.viewer.sync()
+        self.forward()
              
     def reset(self):
         self.reset_gripper_pose()
