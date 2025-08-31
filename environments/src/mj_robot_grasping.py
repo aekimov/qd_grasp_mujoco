@@ -1,24 +1,16 @@
-
-
-import time
 import numpy as np
 
-from pybullet_utils.bullet_client import BulletClient
-import pybullet as p
+from environments.src.mujoco_simulation.mj_client import MjClient
 
 import environments.src.env_constants as env_consts
 import configs.eval_config as eval_cfg
 
-from environments.src.bullet_simulation.simulation_rendering import SimulationRendering
 from environments.src.bullet_simulation.simulation_engine import SimulationEngine
-
-import configs.exec_config as exec_cfg
-
 
 class MjRobotGrasping:
     def __init__(
             self,
-            robot_urdf_path,
+            scene_path,
             list_id_gripper_fingers,
             list_id_gripper_fingers_actuated,
             gripper_6dof_infos,
@@ -36,9 +28,7 @@ class MjRobotGrasping:
             **kwargs
             ):
 
-        self._bullet_client = None  # bullet physics client
-        self.physics_client_id = None  # bullet physics client id
-        self.sim_render = None  # manage simulation rendering
+        self._mj_client = None  # Mujoco physics client
         self.sim_engine = None  # manage simulation engine
 
         self._debug = debug
@@ -47,7 +37,7 @@ class MjRobotGrasping:
         self._init_attributes(
             display=display,
             object_name=object_name,
-            robot_urdf_path=robot_urdf_path,
+            scene_path=scene_path,
             list_id_gripper_fingers=list_id_gripper_fingers,
             list_id_gripper_fingers_actuated=list_id_gripper_fingers_actuated,
             gripper_6dof_infos=gripper_6dof_infos,
@@ -72,7 +62,7 @@ class MjRobotGrasping:
 
     @property
     def bullet_client(self):
-        return self._bullet_client
+        return self._mj_client
 
     @property
     def debug(self):
@@ -142,7 +132,7 @@ class MjRobotGrasping:
             self,
             display,
             object_name,
-            robot_urdf_path,
+            scene_path,
             list_id_gripper_fingers,
             list_id_gripper_fingers_actuated,
             gripper_6dof_infos,
@@ -156,12 +146,12 @@ class MjRobotGrasping:
             remove_gripper,
     ):
 
-        self._init_bullet_physics_client(display=display)
-
+        self._mj_client = MjClient(xml_path=scene_path, display=display)
+        
         sim_engine_kwargs = {
-            'robot_urdf_path': robot_urdf_path,
+            'scene_path': scene_path,
             'object_name': object_name,
-            'bullet_client': self._bullet_client,
+            'mj_client': self._mj_client,
             'list_id_gripper_fingers': list_id_gripper_fingers,
             'list_id_gripper_fingers_actuated': list_id_gripper_fingers_actuated,
             'gripper_6dof_infos': gripper_6dof_infos,
@@ -175,23 +165,12 @@ class MjRobotGrasping:
         }
         self.sim_engine = SimulationEngine(**sim_engine_kwargs)
 
-        self.sim_engine.reset(bullet_client=self._bullet_client)
+        self.sim_engine.reset(bullet_client=self._mj_client)
 
         if remove_gripper:
-            self._bullet_client.removeBody(self.robot_id)
+            self._mj_client.removeBody(self.robot_id)
 
-        self.sim_engine.init_local_sim_save(bullet_client=self._bullet_client)
-
-        self._init_rendering(
-            display=display,
-        )
-
-    def _init_rendering(self, display):
-        self.sim_render = SimulationRendering(bullet_client=self._bullet_client, display=display)
-
-    def _init_bullet_physics_client(self, display):
-        self._bullet_client = BulletClient(connection_mode=p.GUI if display else p.DIRECT)
-        self.physics_client_id = self._bullet_client._client
+        self.sim_engine.init_local_sim_save(bullet_client=self._mj_client)
 
     def reset(
             self,
@@ -200,17 +179,14 @@ class MjRobotGrasping:
         # Skip state restoration in debug mode as it can cause issues with GUI mode
         if not self.is_debug_mode():
             self.sim_engine.load_state_from_local_save(
-                bullet_client=self._bullet_client,
+                bullet_client=self._mj_client,
             )
         else:
             # In debug mode, reinitialize from scratch to avoid state restoration issues
-            self.sim_engine.reset(bullet_client=self._bullet_client)
+            self.sim_engine.reset(bullet_client=self._mj_client)
 
     def close(self):
-        is_bullet_client_on = self.physics_client_id >= 0
-        if is_bullet_client_on:
-            self._bullet_client.disconnect()
-            self.physics_client_id = -1
+        self._mj_client.close()
 
     def is_debug_mode(self):
         return self._debug
@@ -227,13 +203,13 @@ class MjRobotGrasping:
     def set_6dof_gripper_pose(self, gripper_6dof_pose):
 
         self.sim_engine.set_6dof_pose_gripper(
-            bullet_client=self._bullet_client,
+            bullet_client=self._mj_client,
             start_pos_robot_xyz=gripper_6dof_pose['xyz'],
             start_orient_robot_rpy=gripper_6dof_pose['euler_rpy'],
             start_orient_robot_quat=gripper_6dof_pose['quaternions'],
         )
 
-        self._bullet_client.stepSimulation()
+        self._mj_client.stepSimulation()
 
     def _cvt_genome2synergy_label(self, synergy_label, debug=False):
         raise NotImplementedError('Must be overwritten in robot_grasping subclasses.')
@@ -262,15 +238,15 @@ class MjRobotGrasping:
         for i_step in range(max_n_step):
 
             if not is_obj_touched:
-                is_obj_touched = self.sim_engine.are_fingers_touching_object(bullet_client=self._bullet_client)
+                is_obj_touched = self.sim_engine.are_fingers_touching_object(bullet_client=self._mj_client)
 
             if synergy_label is not None:
                 # Force non-used fingers to init pose
                 for i_finger_joint in list_id_grip_fingers_actuated_non_actuated:
-                    self._bullet_client.setJointMotorControl2(
+                    self._mj_client.setJointMotorControl2(
                         bodyIndex=robot_id,
                         jointIndex=i_finger_joint,
-                        controlMode=self._bullet_client.POSITION_CONTROL,
+                        controlMode=self._mj_client.POSITION_CONTROL,
                         targetPosition=self.sim_engine.gripper_default_joint_states[i_finger_joint],
                         maxVelocity=fingers_joint_infos[i_finger_joint]['max_vel'],
                         force=fingers_joint_infos[i_finger_joint]['max_force']
@@ -278,10 +254,10 @@ class MjRobotGrasping:
 
             # Close fingers
             for i_finger_joint in list_id_grip_fingers_actuated:
-                self._bullet_client.setJointMotorControl2(
+                self._mj_client.setJointMotorControl2(
                     bodyIndex=robot_id,
                     jointIndex=i_finger_joint,
-                    controlMode=self._bullet_client.POSITION_CONTROL,
+                    controlMode=self._mj_client.POSITION_CONTROL,
                     targetPosition=fingers_joint_infos[i_finger_joint]['low_lim'],
                     maxVelocity=fingers_joint_infos[i_finger_joint]['max_vel'],
                     force=fingers_joint_infos[i_finger_joint]['max_force']
@@ -290,26 +266,26 @@ class MjRobotGrasping:
             # Maintain the hand at the 6DoF pose
             for i_grip_joint, gripper_joint_infos in self.gripper_6dof_infos.items():
                 joint_target_val = init_gripper_joint_poses[i_grip_joint]
-                self._bullet_client.setJointMotorControl2(
+                self._mj_client.setJointMotorControl2(
                     bodyIndex=robot_id,
                     jointIndex=i_grip_joint,
-                    controlMode=self._bullet_client.POSITION_CONTROL,
+                    controlMode=self._mj_client.POSITION_CONTROL,
                     targetPosition=joint_target_val,
                     maxVelocity=max_velocity_gripper,
                     force=force_gripper
                 )
 
-            self._bullet_client.stepSimulation()
-            if self.sim_render.display:
-                time.sleep(exec_cfg.TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC)
+            self._mj_client.stepSimulation()
+            # if self.sim_render.display:
+            #     time.sleep(exec_cfg.TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC)
 
         if not is_obj_touched:
-            is_obj_touched = self.sim_engine.are_fingers_touching_object(bullet_client=self._bullet_client)
+            is_obj_touched = self.sim_engine.are_fingers_touching_object(bullet_client=self._mj_client)
 
         return is_obj_touched
 
     def is_grasping_candidate(self):
-        return self.sim_engine.is_grasping_candidate(bullet_client=self._bullet_client)
+        return self.sim_engine.is_grasping_candidate(bullet_client=self._mj_client)
 
     def apply_all_gripper_shaking(self, gripper_6dof_output_data):
         grip_6dof_infos = self.sim_engine.gripper_6dof_infos
@@ -347,7 +323,7 @@ class MjRobotGrasping:
         while i_shake < n_shake:
             for j_pose in target_j_poses:
                 self.command_joint_pose(target_position=j_pose, **cmd_jp_kwargs)
-                if not self.sim_engine.is_grasping(self._bullet_client):
+                if not self.sim_engine.is_grasping(self._mj_client):
                     is_being_grasped = False
                     return is_being_grasped, i_shake
 
@@ -378,10 +354,10 @@ class MjRobotGrasping:
             velocity_gain,
     ):
         for _ in range(env_consts.SHAKING_PARAMETERS['t_cmd_stable']):
-            self._bullet_client.setJointMotorControl2(
+            self._mj_client.setJointMotorControl2(
                 bodyIndex=self.robot_id,
                 jointIndex=joint_index,
-                controlMode=self._bullet_client.POSITION_CONTROL,
+                controlMode=self._mj_client.POSITION_CONTROL,
                 targetPosition=target_position,
                 maxVelocity=max_velocity,
                 force=force,
@@ -389,20 +365,20 @@ class MjRobotGrasping:
                 velocityGain=velocity_gain
             )
 
-            self._bullet_client.stepSimulation()
-            if self.sim_render.display:
-                time.sleep(exec_cfg.TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC)
+            self._mj_client.stepSimulation()
+            # if self.sim_render.display:
+            #     time.sleep(exec_cfg.TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC)
         return
 
     def is_there_overlapping(self):
-        return self.sim_engine.is_there_overlapping(bullet_client=self._bullet_client)
+        return self.sim_engine.is_there_overlapping(bullet_client=self._mj_client)
 
     def set_joint_states_from_genes(self, init_joint_state_genes):
 
         joint_ids_to_states = self._cvt_genome2init_joint_states(init_joint_state_genes)
 
         self.sim_engine.set_robot_joint_states(
-            bullet_client=self._bullet_client, joint_ids_to_states=joint_ids_to_states
+            bullet_client=self._mj_client, joint_ids_to_states=joint_ids_to_states
         )
 
     def add_noise_to_object_state(self):

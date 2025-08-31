@@ -11,28 +11,28 @@ import environments.src.robots.mj_shadow_hand_consts as sh_consts
 """
 
 
-def init_urdf_shadow_hand():
+def init_shadow_hand_scene():
     root_3d_models_robots = \
         Path(environments.__file__).resolve().parent / env_consts.GYM_ENVS_RELATIVE_PATH2ROBOTS_MODELS
 
-    urdf = Path(root_3d_models_robots / sh_consts.SHADOW_HAND_GRIP_RELATIVE_PATH_URDF)
-    return str(urdf)
+    xml = Path(root_3d_models_robots / sh_consts.SHADOW_HAND_SCENE_RELATIVE_PATH_XML)
+    return str(xml)
 
 
 class MjShadowHand(MjRobotGrasping):
 
     def __init__(self, **kwargs):
-        urdf = init_urdf_shadow_hand()
+        scene_path = init_shadow_hand_scene()
 
-        list_id_gripper_fingers = sh_consts.LIST_ID_GRIPPER_FINGERS
-        list_id_gripper_fingers_actuated = sh_consts.LIST_ID_GRIPPER_FINGERS_ACTUATORS
+        list_id_gripper_fingers = sh_consts.ALL_FINGER_ACTUATORS
+        list_id_gripper_fingers_actuated = sh_consts.GRIPPER_ACTUATORS_ALL_FINGERS
 
         gripper_6dof_infos = sh_consts.GRIPPER_6DOF_INFOS
         gripper_parameters = sh_consts.GRIPPER_PARAMETERS
 
         gripper_default_joint_states = sh_consts.DEFAULT_JOINT_STATES
 
-        max_standoff_gripper = sh_consts.MAX_HAND_STANDOFF_ALLEGRO
+        max_standoff_gripper = sh_consts.MAX_HAND_STANDOFF
         wrist_palm_offset_gripper = sh_consts.WRIST_PALM_OFFSET
         half_palm_depth_offset_gripper = sh_consts.HALF_PALM_DEPTH
 
@@ -40,7 +40,7 @@ class MjShadowHand(MjRobotGrasping):
         pose_relative_to_contact_point_d_max = sh_consts.POSE_RELATIVE_TO_CONTACT_POINT_D_MAX
 
         super().__init__(
-            robot_urdf_path=urdf,
+            scene_path=scene_path,
             list_id_gripper_fingers=list_id_gripper_fingers,
             list_id_gripper_fingers_actuated=list_id_gripper_fingers_actuated,
             gripper_6dof_infos=gripper_6dof_infos,
@@ -56,7 +56,7 @@ class MjShadowHand(MjRobotGrasping):
         )
 
     def _cvt_genome2synergy_label(self, synergy_label, debug=False):
-        return sh_consts.LIST_ID_GRIPPER_FINGERS_ACTUATORS
+        return sh_consts.GRIPPER_ACTUATORS_ALL_FINGERS
 
     def _cvt_genome2init_joint_states(self, init_joint_state_genes):
         raise NotImplementedError('Undefined _cvt_genome2init_joint_states for the current gripper.')

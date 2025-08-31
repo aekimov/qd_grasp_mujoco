@@ -32,7 +32,7 @@ class MjClient:
             self.viewer.cam.lookat[2] += 0.5
 
 
-    def close_viewer(self):
+    def close(self):
         if self.viewer is not None:
             self.viewer.close()
             self.viewer = None

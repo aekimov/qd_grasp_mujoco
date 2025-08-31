@@ -2,6 +2,18 @@
 MuJoCo Shadow Hand Actuator Constants
 All actuator names correspond to the position actuators defined in right_hand.xml.
 """
+import numpy as np
+
+GRIPPER_6DOF_INFOS = {
+    0: {'axis': 'x', 'type': 'prismatic', 'max_vel': 10, 'force': 20, 'position_gain': 2.82, 'velocity_gain': 64, 'joint_target_val': 0.2}, # rouge
+    1: {'axis': 'y', 'type': 'prismatic', 'max_vel': 10, 'force': 20, 'position_gain': 2.82, 'velocity_gain': 64, 'joint_target_val': 0.2},  # vert
+    2: {'axis': 'z', 'type': 'prismatic', 'max_vel': 10, 'force': 20, 'position_gain': 2.82,  'velocity_gain': 64, 'joint_target_val': 0.2},  # bleu
+
+    3: {'axis': 'x', 'type': 'revolute', 'max_vel': 10, 'force': 100, 'position_gain': 0.05,  'velocity_gain': 1, 'joint_target_val': np.pi/4},
+    4: {'axis': 'y', 'type': 'revolute', 'max_vel': 10, 'force': 100, 'position_gain': 0.05,  'velocity_gain': 1, 'joint_target_val': np.pi/4},
+    5: {'axis': 'z', 'type': 'revolute', 'max_vel': 10, 'force': 100, 'position_gain': 0.05,  'velocity_gain': 1, 'joint_target_val': np.pi/4},
+}
+
 
 # ========================================
 # WRIST ACTUATORS
@@ -176,3 +188,8 @@ POSE_RELATIVE_TO_CONTACT_POINT_D_MIN = WRIST_PALM_OFFSET + HALF_PALM_DEPTH
 POSE_RELATIVE_TO_CONTACT_POINT_D_MAX = POSE_RELATIVE_TO_CONTACT_POINT_D_MIN + MAX_HAND_STANDOFF
 
 
+# ---------------------------------------------- #
+#                    3D Models
+# ---------------------------------------------- #
+
+SHADOW_HAND_SCENE_RELATIVE_PATH_XML = "shadow_hand_mujoco/shadow_hand_scene.xml"
