@@ -49,24 +49,42 @@ class MjClient:
         return self.data.xpos[bid].copy(), self.data.xquat[bid].copy()
 
     # --- setters (write joint state; quat is wxyz) ---
-    def set_6dof_pose_gripper(self, pos_xyz, orient_quat):
-        jid  = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, "hand_free")
-        adr  = self.model.jnt_qposadr[jid]   # start index in qpos for this freejoint (7 slots: xyz + quat)
+    def _set_6dof_pose_gripper_joint(self, pos_xyz, quat_wxyz):
+        jid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, "hand_free")
+        adr = self.model.jnt_qposadr[jid]   # start index in qpos for this freejoint (7 slots: xyz + quat)
         vadr = self.model.jnt_dofadr[jid]    # start index in qvel (6 slots)
         
         self.data.qpos[adr:adr+3] = pos_xyz
-        self.data.qpos[adr+3:adr+7] = orient_quat
+        self.data.qpos[adr+3:adr+7] = quat_wxyz
         self.data.qvel[vadr:vadr+6] = 0  # Zero base velocities so we don't inject impulses
         
         self.forward()
         
-    def set_6dof_pose_object(self, pos_xyz, orient_quat):
+    # added weld constraint to and now both mocap and freejoint are needed to be moves
+    # so the hand base does not drift/rotate during grasp
+    def set_6dof_pose_gripper(self, pos_xyz, quat_wxyz):
+        bid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "hand_target")
+        mid = self.model.body_mocapid[bid]
+        
+        jid  = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, "hand_free")
+        qadr = self.model.jnt_qposadr[jid]
+        vadr = self.model.jnt_dofadr[jid]
+
+        self.data.mocap_pos[mid] = pos_xyz
+        self.data.mocap_quat[mid] = quat_wxyz
+        self.data.qpos[qadr:qadr+3] = pos_xyz
+        self.data.qpos[qadr+3:qadr+7] = quat_wxyz
+        self.data.qvel[vadr:vadr+6] = 0.0
+        
+        self.forward()
+
+    def set_6dof_pose_object(self, pos_xyz, quat_wxyz):
         jid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, "can_free")
         qadr = self.model.jnt_qposadr[jid]
         vadr = self.model.jnt_dofadr[jid]
         
         self.data.qpos[qadr:qadr+3] = pos_xyz
-        self.data.qpos[qadr+3:qadr+7] = orient_quat
+        self.data.qpos[qadr+3:qadr+7] = quat_wxyz
         self.data.qvel[vadr:vadr+6] = 0
         
         self.forward()

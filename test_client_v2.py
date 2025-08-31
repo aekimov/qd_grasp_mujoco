@@ -16,6 +16,7 @@ for p in poses:
 
 client.reset_gripper_pose()
 client.reset_object_pose()
+time.sleep(1.0)
 # close gripper animates only if the function steps AND syncs internally
 client.close_gripper(actuator_names=sh_consts.GRIPPER_ACTUATORS_ALL_FINGERS)
 client.reset_robot_fingers()
