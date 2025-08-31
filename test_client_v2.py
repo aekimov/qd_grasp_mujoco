@@ -7,22 +7,27 @@ XML_PATH = "environments/3d_models/robots/shadow_hand_mujoco/shadow_hand_scene.x
 
 client = MjClient(XML_PATH, display=True)
 
-poses = [(1.0,0.0,0.0), (0.0,1.0,0.0), (0.0,0.0,1.0)]
-orient = client.default_gripper_orient
 
-for p in poses:
-    client.set_6dof_pose_gripper(p, orient)
-    time.sleep(1.0)
-
-client.reset_gripper_pose()
-client.reset_object_pose()
-time.sleep(1.0)
-# close gripper animates only if the function steps AND syncs internally
 client.close_gripper(actuator_names=sh_consts.GRIPPER_ACTUATORS_ALL_FINGERS)
-client.reset_robot_fingers()
+client.shake_gripper(animate=True)
 
-# keep the window open (no physics advance)
+
 while client.viewer and client.viewer.is_running():
     client.viewer.sync()
 
 
+poses = [(1.0,0.0,0.0), (0.0,1.0,0.0), (0.0,0.0,1.0)]
+orient = client.default_gripper_orient
+
+# for p in poses:
+#     client.set_6dof_pose_gripper(p, orient)
+#     time.sleep(1.0)
+
+# client.reset_gripper_pose()
+# client.reset_object_pose()
+# time.sleep(1.0)
+
+# client.close_gripper(actuator_names=sh_consts.GRIPPER_ACTUATORS_ALL_FINGERS)
+# client.reset_robot_fingers()
+
+# keep the window open (no physics advance)

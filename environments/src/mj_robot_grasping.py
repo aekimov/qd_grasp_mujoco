@@ -1,11 +1,10 @@
 import numpy as np
 
 from environments.src.mujoco_simulation.mj_client import MjClient
+from environments.src.mujoco_simulation.mj_simulation_engine import MjSimulationEngine
 
 import environments.src.env_constants as env_consts
 import configs.eval_config as eval_cfg
-
-from environments.src.bullet_simulation.simulation_engine import SimulationEngine
 
 class MjRobotGrasping:
     def __init__(
@@ -163,7 +162,7 @@ class MjRobotGrasping:
             'pose_relative_to_contact_point_d_min': pose_relative_to_contact_point_d_min,
             'pose_relative_to_contact_point_d_max': pose_relative_to_contact_point_d_max,
         }
-        self.sim_engine = SimulationEngine(**sim_engine_kwargs)
+        self.sim_engine = MjSimulationEngine(**sim_engine_kwargs)
 
         self.sim_engine.reset(bullet_client=self._mj_client)
 
@@ -217,67 +216,16 @@ class MjRobotGrasping:
     def _cvt_genome2init_joint_states(self, init_joint_state_genes):
         raise NotImplementedError('Must be overwritten in robot_grasping subclasses.')
 
-    def close_gripper(self, robot_id, fingers_joint_infos, synergy_label=None):
-
-        if synergy_label is not None:
-            list_id_grip_fingers_actuated = self._cvt_genome2synergy_label(synergy_label)
-            list_id_grip_fingers_actuated_non_actuated = list(
-                set(self.list_id_gripper_fingers_actuated) - set(list_id_grip_fingers_actuated)
-            )
-        else:
-            list_id_grip_fingers_actuated = self.list_id_gripper_fingers_actuated
-
-        grip_params = self.sim_engine.gripper_parameters
-
-        init_gripper_joint_poses = [0.] * len(self.gripper_6dof_infos)
-        max_n_step = grip_params['max_n_step_close_grip']
-        max_velocity_gripper = grip_params['max_velocity_maintain_6dof']
-        force_gripper = grip_params['force_maintain_6dof']
+    def close_gripper(self, robot_id):
+        list_id_grip_fingers_actuated = self.list_id_gripper_fingers_actuated
+        max_n_step = self.sim_engine.gripper_parameters['max_n_step_close_grip']
         is_obj_touched = False
 
         for i_step in range(max_n_step):
-
             if not is_obj_touched:
                 is_obj_touched = self.sim_engine.are_fingers_touching_object(bullet_client=self._mj_client)
-
-            if synergy_label is not None:
-                # Force non-used fingers to init pose
-                for i_finger_joint in list_id_grip_fingers_actuated_non_actuated:
-                    self._mj_client.setJointMotorControl2(
-                        bodyIndex=robot_id,
-                        jointIndex=i_finger_joint,
-                        controlMode=self._mj_client.POSITION_CONTROL,
-                        targetPosition=self.sim_engine.gripper_default_joint_states[i_finger_joint],
-                        maxVelocity=fingers_joint_infos[i_finger_joint]['max_vel'],
-                        force=fingers_joint_infos[i_finger_joint]['max_force']
-                    )
-
-            # Close fingers
-            for i_finger_joint in list_id_grip_fingers_actuated:
-                self._mj_client.setJointMotorControl2(
-                    bodyIndex=robot_id,
-                    jointIndex=i_finger_joint,
-                    controlMode=self._mj_client.POSITION_CONTROL,
-                    targetPosition=fingers_joint_infos[i_finger_joint]['low_lim'],
-                    maxVelocity=fingers_joint_infos[i_finger_joint]['max_vel'],
-                    force=fingers_joint_infos[i_finger_joint]['max_force']
-                )
-
-            # Maintain the hand at the 6DoF pose
-            for i_grip_joint, gripper_joint_infos in self.gripper_6dof_infos.items():
-                joint_target_val = init_gripper_joint_poses[i_grip_joint]
-                self._mj_client.setJointMotorControl2(
-                    bodyIndex=robot_id,
-                    jointIndex=i_grip_joint,
-                    controlMode=self._mj_client.POSITION_CONTROL,
-                    targetPosition=joint_target_val,
-                    maxVelocity=max_velocity_gripper,
-                    force=force_gripper
-                )
-
-            self._mj_client.stepSimulation()
-            # if self.sim_render.display:
-            #     time.sleep(exec_cfg.TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC)
+            
+            self._mj_client.close_gripper(actuator_names=list_id_grip_fingers_actuated)
 
         if not is_obj_touched:
             is_obj_touched = self.sim_engine.are_fingers_touching_object(bullet_client=self._mj_client)
@@ -288,13 +236,12 @@ class MjRobotGrasping:
         return self.sim_engine.is_grasping_candidate(bullet_client=self._mj_client)
 
     def apply_all_gripper_shaking(self, gripper_6dof_output_data):
-        grip_6dof_infos = self.sim_engine.gripper_6dof_infos
         assert not gripper_6dof_output_data['is_overlap']
         assert gripper_6dof_output_data['is_obj_touched']
 
         are_all_shakes_successful = True
         for i_grip_joint in env_consts.SHAKING_PARAMETERS['perturbated_joint_ids']:
-            gripper_joint_infos = grip_6dof_infos[i_grip_joint]
+            gripper_joint_infos = self.gripper_6dof_infos[i_grip_joint]
             is_being_grasped, n_shake_success = self.apply_gripper_shaking(
                 joint_index=i_grip_joint,
                 gripper_joint_infos=gripper_joint_infos,
