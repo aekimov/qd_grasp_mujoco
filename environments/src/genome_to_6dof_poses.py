@@ -7,8 +7,6 @@ from algorithms.evaluation.grasp_strategies_routines import get_normal_surface_p
 
 import configs.qd_config as qd_cfg
 
-EXTREMITY_WIRST = 0.112
-
 def cvt_genome_to_preset_6dof_pose_contact_strat_contact_point_finder(robot_grasp_env, genome):
 
     # Extract values from the genome

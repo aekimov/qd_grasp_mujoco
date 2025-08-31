@@ -234,6 +234,7 @@ def cvt_genome_to_6dof_pose(individual, env, eval_kwargs):
             robot_grasp_env=env, genome=individual
         )
     elif search_representation == qd_cfg.SearchSpaceRepresentation.CONTACT_STRATEGY_CONTACT_POINT_FINDER:
+        # Environemnt <environments.src.robots.shadow_hand_grasping.ShadowHand>
         gripper_6dof_pose = cvt_gen_6dof.cvt_genome_to_6dof_pose_contact_strategy_search(
             robot_grasp_env=env, genome=individual, robot=robot
         )
