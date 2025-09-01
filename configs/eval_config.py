@@ -37,7 +37,7 @@ ENV_EVAL_CONFIGS = {
         'n_init_joint_states': 2,
     },
     env_consts.SimulatedRobot.SHADOW_HAND: {
-        'with_synergy': True,
+        'with_synergy': False,
         'n_synergies': 4,
 
         'with_init_joint_state_in_genome': False,

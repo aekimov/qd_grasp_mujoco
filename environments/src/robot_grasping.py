@@ -398,7 +398,6 @@ class RobotGrasping:
         return self.sim_engine.is_there_overlapping(bullet_client=self._bullet_client)
 
     def set_joint_states_from_genes(self, init_joint_state_genes):
-
         joint_ids_to_states = self._cvt_genome2init_joint_states(init_joint_state_genes)
 
         self.sim_engine.set_robot_joint_states(

@@ -7,7 +7,7 @@ import environments.src.robots.mj_shadow_hand_consts as sh_consts
 import environments.src.env_constants as env_consts
 
 MAX_STEP_CLOSE_GRIP = 100
-TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC = 0.02 * 2
+TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC = 0.02
 
 class MjClient:
     def __init__(self, xml_path: str, display: bool = False):
@@ -73,11 +73,11 @@ class MjClient:
 
         self.data.mocap_pos[mid] = pos_xyz
         self.data.mocap_quat[mid] = quat_wxyz
-        # self.data.qpos[qadr:qadr+3] = pos_xyz
-        # self.data.qpos[qadr+3:qadr+7] = quat_wxyz
-        # self.data.qvel[vadr:vadr+6] = 0.0
+        self.data.qpos[qadr:qadr+3] = pos_xyz
+        self.data.qpos[qadr+3:qadr+7] = quat_wxyz
+        self.data.qvel[vadr:vadr+6] = 0.0
         
-        # self.forward()
+        self.forward()
 
     def set_6dof_pose_object(self, pos_xyz, quat_wxyz):
         jid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, "can_free")
@@ -154,64 +154,6 @@ class MjClient:
         if animate and self.viewer:
             self.viewer.sync()
             time.sleep(TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC)
-    
-    # def shake_gripper(self, animate: bool = True):
-    #     # axis letter -> unit vector
-    #     AX = {
-    #         'x': np.array([1.0, 0.0, 0.0]),
-    #         'y': np.array([0.0, 1.0, 0.0]),
-    #         'z': np.array([0.0, 0.0, 1.0]),
-    #     }
-
-    #     # quaternion multiply (wxyz)
-    #     def qmul(a, b):
-    #         aw, ax, ay, az = a
-    #         bw, bx, by, bz = b
-    #         return np.array([
-    #             aw*bw - ax*bx - ay*by - az*bz,
-    #             aw*bx + ax*bw + ay*bz - az*by,
-    #             aw*by - ax*bz + ay*bw + az*bx,
-    #             aw*bz + ax*by - ay*bx + az*bw
-    #         ], dtype=float)
-
-    #     # axis-angle -> quat (wxyz)
-    #     def axis_angle_quat(axis, angle):
-    #         half = 0.5 * angle
-    #         s = np.sin(half)
-    #         return np.array([np.cos(half), axis[0]*s, axis[1]*s, axis[2]*s], dtype=float)
-
-    #     p0 = self.default_gripper_pose.copy()
-    #     q0 = self.default_gripper_orient.copy()
-
-    #     n_shake      = env_consts.SHAKING_PARAMETERS['n_shake']
-    #     t_per_target = env_consts.SHAKING_PARAMETERS.get('t_cmd_stable', 50)
-    #     ids          = env_consts.SHAKING_PARAMETERS['perturbated_joint_ids']
-
-    #     for gid in ids:
-    #         info   = sh_consts.GRIPPER_6DOF_INFOS[gid]
-    #         axis   = AX[info['axis']]
-    #         typ    = info['type']              # 'prismatic' or 'revolute'
-    #         amp    = float(info['joint_target_val'])
-
-    #         # sequence like Bullet: +amp, -amp, 0 around the saved default
-    #         for _ in range(n_shake):
-    #             for val in ( amp, -amp, 0.0 ):
-    #                 for _ in range(t_per_target):
-    #                     if typ == 'prismatic':
-    #                         pos  = p0 + axis * val
-    #                         quat = q0
-    #                     else:  # revolute
-    #                         dq   = axis_angle_quat(axis, val)  # unit quaternion
-    #                         quat = qmul(q0, dq)
-    #                         pos  = p0
-
-    #                     self.set_6dof_pose_gripper(pos, quat)
-    #                     self.step(animate)
-
-    #     # return to exact default
-    #     self.reset_gripper_pose()
-    #     self.step(animate)
-
 
     def shake_gripper(self, animate: bool = True):
         p0 = self.default_gripper_pose.copy()
@@ -221,7 +163,6 @@ class MjClient:
         n_shake = env_consts.SHAKING_PARAMETERS['n_shake']
         hold = env_consts.SHAKING_PARAMETERS.get('t_cmd_stable', 50)
 
-        # sequence like Bullet: +A, -A, 0 around default
         targets = [ +amp, -amp, 0.0 ]
 
         for _ in range(n_shake):
@@ -239,50 +180,39 @@ class MjClient:
                     self.set_6dof_pose_gripper(p, q0)   # keep orientation fixed
                     self.step(animate)
 
-        # snap back to exact default and hold a bit
-        self.set_6dof_pose_gripper(p0, q0)
-        for _ in range(hold):
-            self.step(animate)
+        self.reset()
+        
+    def is_there_contacts(self) -> bool:
+        return len(self.data.ncon) != 0
+    
+    def are_bodies_in_contact(self, body_names: list[str], target_body_name: str) -> bool:
+        m, d = self.model, self.data
+
+        target_bid = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, target_body_name)
+        body_ids = [mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, nm) for nm in body_names]
+
+        for i in range(d.ncon):
+            c = d.contact[i]
+            g1, g2 = int(c.geom1), int(c.geom2)
+            b1, b2 = int(m.geom_bodyid[g1]), int(m.geom_bodyid[g2])
+
+            if ((b1 == target_bid and b2 in body_ids) or
+                (b2 == target_bid and b1 in body_ids)):
+                return True
+        return False
+    
+    def is_there_overlapping(self) -> bool:
+        m, d = self.model, self.data
+        robot_bid = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, "hand_root")
+
+        for i in range(d.ncon):
+            c = d.contact[i]
+            g1, g2 = int(c.geom1), int(c.geom2)
+            b1, b2 = int(m.geom_bodyid[g1]), int(m.geom_bodyid[g2])
+
+            if b1 == robot_bid or b2 == robot_bid:
+                if c.dist < 0.0:   # penetration
+                    return True
+        return False
 
 
-    # def shake_gripper(self, animate: bool = True):      
-    #     n_shake = env_consts.SHAKING_PARAMETERS['n_shake']
-    #     i_shake = 0
-    #     target_position = 0.5
-        
-    #     target_j_poses = [target_position, -target_position, 0]
-    #     while i_shake < n_shake:
-    #         for j_pose in target_j_poses:
-    #             for _ in range(env_consts.SHAKING_PARAMETERS['t_cmd_stable']):
-    #                 pose = [0, 0, j_pose]
-    #                 self.set_6dof_pose_gripper(pose, self.default_gripper_orient)
-    #                 self.step(animate)
-    #         i_shake += 1
-        
-        
-        # for i_grip_joint in env_consts.SHAKING_PARAMETERS['perturbated_joint_ids']:
-        #     gripper_joint_infos = sh_consts.GRIPPER_6DOF_INFOS[i_grip_joint]
-            
-            
-        #     target_position = 1 # gripper_joint_infos['joint_target_val']
-        #     velocity = gripper_joint_infos['max_vel']
-        #     type = gripper_joint_infos['type']
-        #     axis = gripper_joint_infos['axis']
-            
-        #     i_shake = 0
-
-            # target_j_poses = [target_position, -target_position, 0]
-            # while i_shake < n_shake:
-            #     for j_pose in target_j_poses:
-            #         for _ in range(env_consts.SHAKING_PARAMETERS['t_cmd_stable']):
-            #             pose = [j_pose, 0, 0]
-            #             self.set_6dof_pose_gripper(pose, self.default_gripper_orient)
-            #             self.step(animate)
-            #     i_shake += 1
-
-        # self.reset_gripper_pose()
-        # self.step(animate)
-  
-
-        
-        
