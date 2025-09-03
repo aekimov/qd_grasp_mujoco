@@ -5,6 +5,7 @@ import time
 
 import environments.src.robots.mj_shadow_hand_consts as sh_consts
 import environments.src.env_constants as env_consts
+from environments.src.mj_search_space_bb_processor import get_body_aabb, get_search_space_bb
 
 MAX_STEP_CLOSE_GRIP = 100
 TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC = 0.02
@@ -215,4 +216,95 @@ class MjClient:
                     return True
         return False
 
+    def show_debug_cube(self, center=(0,0,0.2), half_size=(0.05,0.05,0.05), rgba=(0,1,0,0.5)):
+        while self.viewer.is_running():
+            mujoco.mj_step(self.model, self.data)
+            scn = self.viewer.user_scn
+            scn.ngeom = 0
+            g = scn.geoms[scn.ngeom]
+            
+            mujoco.mjv_initGeom(
+                g,
+                type=mujoco.mjtGeom.mjGEOM_BOX,
+                size=half_size,
+                pos=center,
+                mat=np.eye(3).flatten(),
+                rgba=rgba
+            )
+            scn.ngeom += 1
+            self.viewer.sync()
 
+    def show_aabb(self, robot_name="hand_root", object_name="can"):
+        print(f"Getting AABB for robot: {robot_name}")
+        robot_aabb_min, robot_aabb_max = get_body_aabb(self.model, self.data, robot_name)
+        print(f"Robot AABB: min={robot_aabb_min}, max={robot_aabb_max}")
+        
+        print(f"Getting AABB for object: {object_name}")  
+        object_aabb_min, object_aabb_max = get_body_aabb(self.model, self.data, object_name)
+        print(f"Object AABB: min={object_aabb_min}, max={object_aabb_max}")
+        
+        robot_center = (robot_aabb_min + robot_aabb_max) / 2
+        robot_half_sizes = (robot_aabb_max - robot_aabb_min) / 2
+        
+        object_center = (object_aabb_min + object_aabb_max) / 2
+        object_half_sizes = (object_aabb_max - object_aabb_min) / 2
+        
+        print(f"Robot - Center: {robot_center}, Half sizes: {robot_half_sizes}")
+        print(f"Object - Center: {object_center}, Half sizes: {object_half_sizes}")
+        
+        while self.viewer.is_running():
+            mujoco.mj_step(self.model, self.data)
+            scn = self.viewer.user_scn
+            scn.ngeom = 0
+            
+            # Robot AABB (red)
+            g1 = scn.geoms[scn.ngeom]
+            mujoco.mjv_initGeom(
+                g1,
+                type=mujoco.mjtGeom.mjGEOM_BOX,
+                size=robot_half_sizes,
+                pos=robot_center,
+                mat=np.eye(3).flatten(),
+                rgba=(1, 0, 0, 0.3)
+            )
+            scn.ngeom += 1
+            
+            # Object AABB (blue)
+            g2 = scn.geoms[scn.ngeom]
+            mujoco.mjv_initGeom(
+                g2,
+                type=mujoco.mjtGeom.mjGEOM_BOX,
+                size=object_half_sizes,
+                pos=object_center,
+                mat=np.eye(3).flatten(),
+                rgba=(0, 0, 1, 0.3)
+            )
+            scn.ngeom += 1
+            self.viewer.sync()
+
+    def show_search_space_aabb(self, robot_name="hand_root", object_name="can"):
+        print(f"Getting search space AABB for robot '{robot_name}' and object '{object_name}'")
+        ss_bb = get_search_space_bb(self.model, self.data, robot_name, object_name)
+        print(f"Search space BB: min={ss_bb.aabb_min}, max={ss_bb.aabb_max}")
+        
+        center = (np.array(ss_bb.aabb_min) + np.array(ss_bb.aabb_max)) / 2
+        half_sizes = (np.array(ss_bb.aabb_max) - np.array(ss_bb.aabb_min)) / 2
+        print(f"Search space - Center: {center}, Half sizes: {half_sizes}")
+        
+        while self.viewer.is_running():
+            mujoco.mj_step(self.model, self.data)
+            scn = self.viewer.user_scn
+            scn.ngeom = 0
+            
+            # Search space AABB (green)
+            g = scn.geoms[scn.ngeom]
+            mujoco.mjv_initGeom(
+                g,
+                type=mujoco.mjtGeom.mjGEOM_BOX,
+                size=half_sizes,
+                pos=center,
+                mat=np.eye(3).flatten(),
+                rgba=(0, 1, 0, 0.3)
+            )
+            scn.ngeom += 1
+            self.viewer.sync()
