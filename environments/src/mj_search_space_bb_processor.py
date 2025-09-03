@@ -3,7 +3,7 @@ from collections import namedtuple
 
 SearchSpaceBB = namedtuple("SearchSpaceBB", "aabb_min aabb_max")
 
-def get_search_space_bb(model, data, robot_name="hand_root", object_name="can"):
+def get_search_space_bb(model, data, robot_name, object_name):
     """Main entry point - gets search space bounding box for object+robot"""
     object_plus_robot_bb = True
     if object_plus_robot_bb:
