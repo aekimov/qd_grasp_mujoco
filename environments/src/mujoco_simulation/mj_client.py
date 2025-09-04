@@ -1,14 +1,12 @@
 import mujoco
 import numpy as np
-from typing import Tuple
 import time
 
 import environments.src.robots.mj_shadow_hand_consts as sh_consts
 import environments.src.env_constants as env_consts
 from environments.src.mj_search_space_bb_processor import get_body_aabb, get_search_space_bb
 
-MAX_STEP_CLOSE_GRIP = 100
-TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC = 0.02
+TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC = 0.02 / 2
 
 class MjClient:
     def __init__(self, xml_path: str, display: bool = False):
@@ -129,22 +127,6 @@ class MjClient:
         self.reset_gripper_pose()
         self.reset_object_pose()
         self.reset_robot_fingers()
-    
-    # def close_gripper(self, actuator_names: list[str]):
-    #     actuator_ids = []
-    #     target_positions = []
-        
-    #     for name in actuator_names:
-    #         aid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_ACTUATOR, name)
-    #         target = self.model.actuator_ctrlrange[aid][1]
-    #         actuator_ids.append(aid)
-    #         target_positions.append(float(target))
-
-    #     for _ in range(MAX_STEP_CLOSE_GRIP):
-    #         for aid, target in zip(actuator_ids, target_positions):
-    #             self.data.ctrl[aid] = target
-
-    #         self.step()
             
     def get_actuators_info(self, actuator_names: list[str]):
         actuator_ids = []
@@ -161,8 +143,13 @@ class MjClient:
     def step(self):
         mujoco.mj_step(self.model, self.data)
         if self.viewer:
-            self.viewer.sync()
-            time.sleep(TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC)
+            if self.viewer.is_running():
+                self.viewer.sync()
+                time.sleep(TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC)
+            else:
+                print("\nViewer was closed by user. Terminating simulation...")
+                self.viewer = None
+                raise KeyboardInterrupt("Viewer was closed by user")
 
     def shake_gripper(self):
         p0 = self.default_gripper_pose.copy()
@@ -316,3 +303,20 @@ class MjClient:
             )
             scn.ngeom += 1
             self.viewer.sync()
+            
+            
+    # def close_gripper(self, actuator_names: list[str]):
+    #     actuator_ids = []
+    #     target_positions = []
+        
+    #     for name in actuator_names:
+    #         aid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_ACTUATOR, name)
+    #         target = self.model.actuator_ctrlrange[aid][1]
+    #         actuator_ids.append(aid)
+    #         target_positions.append(float(target))
+
+    #     for _ in range(MAX_STEP_CLOSE_GRIP):
+    #         for aid, target in zip(actuator_ids, target_positions):
+    #             self.data.ctrl[aid] = target
+
+    #         self.step()

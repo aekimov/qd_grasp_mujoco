@@ -19,7 +19,7 @@ class MjSimulationEngine:
             pose_relative_to_contact_point_d_min,
             pose_relative_to_contact_point_d_max,
     ):
-        self.mj_sim_obj: MjSimObject = None  # manage simulation object to grasp
+        self.mj_sim_obj: MjSimObject = None
         self._robot_id = None
         self._search_space_bb = None
         self._search_space_bb_side = None
@@ -166,17 +166,7 @@ class MjSimulationEngine:
                 f'Both max_standoff_gripper and wrist_palm_offset_gripper must be defined for the given gripper.'
             )
 
-        # bullet_client.resetSimulation()
-        # bullet_client.setPhysicsEngineParameter(deterministicOverlappingPairs=1)
-
         self.mj_sim_obj = MjSimObject(mj_client=mj_client, name="can")
-
-        # self._robot_id = bullet_client.loadURDF(
-        #     fileName=robot_urdf_path,
-        #     basePosition=np.array(DEFAULT_ROBOT_POSE) + [0, 0, 0.8],
-        #     baseOrientation=DEFAULT_ROBOT_ORIENT,
-        #     useFixedBase=True
-        # )
         self._search_space_bb = get_search_space_bb(model=mj_client.model, data=mj_client.data, robot_name="hand_root", object_name="can")
         self._search_space_bb_side = get_search_space_bb_side(self._search_space_bb)
         

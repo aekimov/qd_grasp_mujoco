@@ -45,7 +45,7 @@ class MjRobotGrasping:
             pose_relative_to_contact_point_d_max=pose_relative_to_contact_point_d_max
         )
         
-        self.sim_engine.reset(mj_client=self._mj_client)
+        # self.sim_engine.reset(mj_client=self._mj_client)
 
         if remove_gripper:
             raise NotImplementedError('Not implemented remove_gripper function')

@@ -7,7 +7,6 @@ XML_PATH = "environments/3d_models/robots/shadow_hand_mujoco/shadow_hand_scene.x
 
 client = MjClient(XML_PATH, display=True)
 
-
 def close_gripper(): #robot_id
     for i_step in range(100):
         actuator_ids, target_positions = client.get_actuators_info(actuator_names=sh_consts.GRIPPER_ACTUATORS_ALL_FINGERS)
