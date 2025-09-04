@@ -1,5 +1,5 @@
 from environments.src.mujoco_simulation.mj_client import MjClient
-from environments.src.search_space_bb_processor import get_search_space_bb, get_search_space_bb_side
+from environments.src.mj_search_space_bb_processor import get_search_space_bb, get_search_space_bb_side
 from environments.src.mujoco_simulation.mj_sim_object import MjSimObject
 
 class MjSimulationEngine:
@@ -177,7 +177,7 @@ class MjSimulationEngine:
         #     baseOrientation=DEFAULT_ROBOT_ORIENT,
         #     useFixedBase=True
         # )
-        self._search_space_bb = get_search_space_bb(obj_id=self.obj_id, robot_id=self._robot_id)
+        self._search_space_bb = get_search_space_bb(model=mj_client.model, data=mj_client.data, robot_name="hand_root", object_name="can")
         self._search_space_bb_side = get_search_space_bb_side(self._search_space_bb)
         
         mj_client.reset_robot_fingers()
