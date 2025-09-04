@@ -44,7 +44,7 @@ SHAKING_PARAMETERS = {
     'n_shake': 1,
     'max_n_step': 1000,
     't_cmd_stable': 68,  # t_0.05
-    'perturbated_joint_ids': [2, 3]
+    'perturbated_joint_ids': [2] #3
 }
 
 

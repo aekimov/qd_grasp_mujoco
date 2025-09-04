@@ -165,18 +165,16 @@ class MjRobotGrasping:
         is_obj_touched = False
 
         for i_step in range(max_n_step):
-            if not is_obj_touched:
-                is_obj_touched = self.sim_engine.are_fingers_touching_object(mj_client=self._mj_client)
-            
             actuator_ids, target_positions = self._mj_client.get_actuators_info(actuator_names=list_id_grip_fingers_actuated)
             
             for aid, target in zip(actuator_ids, target_positions):
                 self._mj_client.data.ctrl[aid] = target
 
             self._mj_client.step()
-            
+
         if not is_obj_touched:
-            is_obj_touched = self.sim_engine.are_fingers_touching_object(mj_client=self._mj_client)
+            is_obj_touched = self.sim_engine.is_grasping_candidate(mj_client=self._mj_client)
+            # is_obj_touched = self.sim_engine.are_fingers_touching_object(mj_client=self._mj_client)
 
         return is_obj_touched
 
@@ -218,7 +216,7 @@ class MjRobotGrasping:
         while i_shake < n_shake:
             for j_pose in target_j_poses:
                 self.command_joint_pose(target_position=j_pose, **cmd_jp_kwargs)
-                if not self.sim_engine.is_grasping(self._mj_client):
+                if not self.sim_engine.is_grasping_candidate(mj_client=self._mj_client):
                     is_being_grasped = False
                     return is_being_grasped, i_shake
 
@@ -248,8 +246,18 @@ class MjRobotGrasping:
             position_gain,
             velocity_gain,
     ):
-        self._mj_client.shake_gripper() #sim.engine.display
+        steps = env_consts.SHAKING_PARAMETERS['t_cmd_stable']
 
+        p0, q0 = self._mj_client._get_6dof_pose_gripper()
+        p_goal = p0 + np.array([target_position, 0, 0])
+        
+        for k in range(steps):
+            t = (k + 1) / float(steps)
+            p = (1.0 - t) * p0 + t * p_goal
+            
+            self._mj_client.set_6dof_pose_gripper_shake(p, q0)
+            self._mj_client.step()
+                
     def is_there_overlapping(self):
         return self.sim_engine.is_there_overlapping(mj_client=self._mj_client)
 

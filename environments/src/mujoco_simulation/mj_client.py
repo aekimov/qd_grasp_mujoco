@@ -4,9 +4,9 @@ import time
 
 import environments.src.robots.mj_shadow_hand_consts as sh_consts
 import environments.src.env_constants as env_consts
-from environments.src.mj_search_space_bb_processor import get_body_aabb, get_search_space_bb
+from environments.src.mj_search_space_bb_processor import get_body_aabb, get_search_space_bb, is_descendant_body
 
-TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC = 0.02 / 2
+TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC = 0.02
 
 class MjClient:
     def __init__(self, xml_path: str, display: bool = False):
@@ -74,10 +74,20 @@ class MjClient:
         self.data.mocap_quat[mid] = quat_wxyz
         self.data.qpos[qadr:qadr+3] = pos_xyz
         self.data.qpos[qadr+3:qadr+7] = quat_wxyz
-        self.data.qvel[vadr:vadr+6] = 0.0
+        # self.data.qvel[vadr:vadr+6] = 0.0
         
         self.forward()
 
+    def set_6dof_pose_gripper_shake(self, pos_xyz, quat_wxyz):
+        """Only set mocap target - let weld constraint handle the rest"""
+        bid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "hand_target")
+        mid = self.model.body_mocapid[bid]
+        
+        self.data.mocap_pos[mid] = pos_xyz
+        self.data.mocap_quat[mid] = quat_wxyz
+        
+        self.forward()
+    
     def set_6dof_pose_object(self, pos_xyz, quat_wxyz):
         jid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, "can_free")
         qadr = self.model.jnt_qposadr[jid]
@@ -159,7 +169,7 @@ class MjClient:
         n_shake = env_consts.SHAKING_PARAMETERS['n_shake']
         hold = env_consts.SHAKING_PARAMETERS.get('t_cmd_stable', 50)
 
-        targets = [ +amp, -amp, 0.0 ]
+        targets = [amp, -amp, 0.0]
 
         for _ in range(n_shake):
             for dx in targets:
@@ -179,23 +189,24 @@ class MjClient:
         self.reset()
         
     def is_there_contacts(self) -> bool:
-        return len(self.data.ncon) != 0
+        contacts = self.get_hand_object_contacts()
+        return len(contacts) != 0
     
-    def are_bodies_in_contact(self, body_names: list[str], target_body_name: str) -> bool:
-        m, d = self.model, self.data
+    # def are_bodies_in_contact(self, body_names: list[str], target_body_name: str) -> bool:
+    #     m, d = self.model, self.data
 
-        target_bid = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, target_body_name)
-        body_ids = [mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, nm) for nm in body_names]
+    #     target_bid = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, target_body_name)
+    #     body_ids = [mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, nm) for nm in body_names]
 
-        for i in range(d.ncon):
-            c = d.contact[i]
-            g1, g2 = int(c.geom1), int(c.geom2)
-            b1, b2 = int(m.geom_bodyid[g1]), int(m.geom_bodyid[g2])
+    #     for i in range(d.ncon):
+    #         c = d.contact[i]
+    #         g1, g2 = int(c.geom1), int(c.geom2)
+    #         b1, b2 = int(m.geom_bodyid[g1]), int(m.geom_bodyid[g2])
 
-            if ((b1 == target_bid and b2 in body_ids) or
-                (b2 == target_bid and b1 in body_ids)):
-                return True
-        return False
+    #         if ((b1 == target_bid and b2 in body_ids) or
+    #             (b2 == target_bid and b1 in body_ids)):
+    #             return True
+    #     return False
     
     def is_there_overlapping(self) -> bool:
         m, d = self.model, self.data
@@ -228,6 +239,44 @@ class MjClient:
             )
             scn.ngeom += 1
             self.viewer.sync()
+            
+    def get_hand_object_contacts(self, robot_name="hand_root", object_name="can"):
+        robot_body_id = self.model.body(robot_name).id
+        object_body_id = self.model.body(object_name).id
+        
+        contacts = []
+        
+        # Loop through all active contacts
+        for i in range(self.data.ncon):
+            contact = self.data.contact[i]
+            
+            # Get body IDs for both geoms in contact
+            body1 = self.model.geom_bodyid[contact.geom1]
+            body2 = self.model.geom_bodyid[contact.geom2]
+            
+            # Check if one geom belongs to robot subtree and other to object
+            robot_geom1 = is_descendant_body(self.model, robot_body_id, body1)
+            robot_geom2 = is_descendant_body(self.model, robot_body_id, body2)
+            object_geom1 = is_descendant_body(self.model, object_body_id, body1)
+            object_geom2 = is_descendant_body(self.model, object_body_id, body2)
+            
+            if (robot_geom1 and object_geom2) or (robot_geom2 and object_geom1):
+                # This is a robot-object contact
+                # Extract 6D force (3 force + 3 torque) in contact frame
+                force = np.zeros(6)
+                mujoco.mj_contactForce(self.model, self.data, i, force)
+                
+                contacts.append({
+                    'pos': contact.pos.copy(),           # contact position
+                    'dist': contact.dist,                 # penetration depth (negative)
+                    'normal': contact.frame[:3].copy(),   # contact normal
+                    'force': force[:3].copy(),            # force vector
+                    'torque': force[3:].copy(),           # torque vector
+                    'geom1': contact.geom1,               # geom IDs
+                    'geom2': contact.geom2
+                })
+        
+        return contacts
 
     def show_aabb(self, robot_name="hand_root", object_name="can"):
         print(f"Getting AABB for robot: {robot_name}")

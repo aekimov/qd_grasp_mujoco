@@ -1,6 +1,6 @@
 <mujoco model="shadow_hand_scene">
 	<statistic extent="0.3" center="0.3 0 0"/>
-	<option gravity="0 0 0"/>
+	<option gravity="0 0 -1"/>
 	<visual>
 		<rgba haze="0.15 0.25 0.35 1"/>
 		<quality shadowsize="8192"/>
@@ -18,7 +18,7 @@
 	<worldbody>
 		<light pos="0 0 1"/>
 		<light pos="0.3 0 1.5" dir="0 0 -1" directional="true"/>
-		<geom name="floor" pos="0 0 0" size="0 0 0.05" type="plane" material="groundplane" contype="0" conaffinity="0" rgba="0.2 0.3 0.4 0.1"/>
+		<geom name="floor" pos="0 0 0" size="0 0 0.05" type="plane" material="groundplane" contype="0" conaffinity="0" rgba="0.2 0.3 0.4 0"/>
 
 		<body name="hand_target" mocap="true" pos="0 0 0.8">
 			<!-- <geom type="box" size="0.01 0.01 0.04" rgba="0 1 0 0.2" contype="0" conaffinity="0"/> -->

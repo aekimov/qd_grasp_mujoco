@@ -1,6 +1,8 @@
 
 import sys
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend for plotting
 import matplotlib.pyplot as plt
 import seaborn as sns
 import argparse
@@ -107,7 +109,6 @@ def plot_outcome_archive_coverage(details_dict, data_dict, time_label='n_evals_h
         plt.savefig(fig_path)
         print(f"{fig_path} has been successfully exported.")
     else:
-        plt.show()
         plt.close()
 
 
@@ -137,7 +138,6 @@ def plot_success_archive_coverage(details_dict, data_dict, time_label='n_evals_h
         plt.savefig(fig_path)
         print(f"{fig_path} has been successfully exported.")
     else:
-        plt.show()
         plt.close()
 
 
@@ -167,7 +167,6 @@ def plot_success_archive_qd_score(details_dict, data_dict, time_label='n_evals_h
         plt.savefig(fig_path)
         print(f"{fig_path} has been successfully exported.")
     else:
-        plt.show()
         plt.close()
 
 

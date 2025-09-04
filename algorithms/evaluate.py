@@ -120,7 +120,7 @@ def evaluate_6dof_pose(
     # )
     
     is_obj_touched = env.close_gripper()
-    print(f'is_obj_touched={is_obj_touched}')
+    # print(f'is_obj_touched={is_obj_touched}')
     gripper_6dof_output_data['is_obj_touched'] = is_obj_touched
 
     # Discard if not touching the object

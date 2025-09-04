@@ -175,13 +175,7 @@ class MjSimulationEngine:
     def set_6dof_pose_gripper(self, mj_client: MjClient, start_pos_robot_xyz, start_orient_robot_quat):
         mj_client.set_6dof_pose_gripper(start_pos_robot_xyz, start_orient_robot_quat)
 
-    def are_fingers_touching_object(self, mj_client: MjClient):
-        return mj_client.are_bodies_in_contact(self._list_id_gripper_fingers, "can")
-
     def is_grasping_candidate(self, mj_client: MjClient):
-        return self.are_fingers_touching_object(mj_client=mj_client)
-    
-    def is_grasping(self, mj_client: MjClient):
         return mj_client.is_there_contacts()
 
     def reset(self, mj_client: MjClient):
