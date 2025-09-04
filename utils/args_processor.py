@@ -15,7 +15,8 @@ import configs.eval_config as eval_cfg
 from environments.src.robots.panda_2f_grasping import FrankaEmikaPanda2Fingers
 from environments.src.robots.allegro_hand_grasping import AllegroHand
 from environments.src.robots.barrett_hand_280_grasping import BarrettHand280
-from environments.src.robots.shadow_hand_grasping import ShadowHand
+# from environments.src.robots.shadow_hand_grasping import ShadowHand
+from environments.src.robots.mj_shadow_hand_grasping import MjShadowHand
 from environments.src.robots.robotiq_2f_grasping import Robotiq2Fingers
 
 
@@ -285,7 +286,7 @@ def get_env_class(robot_name):
     elif robot_name == env_consts.SimulatedRobot.BARRETT_HAND_280:
         return BarrettHand280
     elif robot_name == env_consts.SimulatedRobot.SHADOW_HAND:
-        return ShadowHand
+        return MjShadowHand
     else:
         raise NotImplementedError
 

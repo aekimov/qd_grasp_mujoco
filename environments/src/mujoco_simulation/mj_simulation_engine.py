@@ -19,7 +19,7 @@ class MjSimulationEngine:
             pose_relative_to_contact_point_d_min,
             pose_relative_to_contact_point_d_max,
     ):
-        self.mj_sim_obj: MjSimObject = None  # manage bullet simulation object to grasp
+        self.mj_sim_obj: MjSimObject = None  # manage simulation object to grasp
         self._robot_id = None
         self._search_space_bb = None
         self._search_space_bb_side = None
@@ -201,5 +201,5 @@ class MjSimulationEngine:
     def is_there_overlapping(self, mj_client: MjClient):
         return mj_client.is_there_overlapping()
 
-    def set_robot_joint_states(self, bullet_client, joint_ids_to_states):
+    def set_robot_joint_states(self, mj_client: MjClient, joint_ids_to_states):
         raise NotImplementedError('Not implemented yet, because it was not called')

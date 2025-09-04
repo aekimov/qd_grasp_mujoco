@@ -47,7 +47,8 @@ def init_grasping_env(env_class, env_kwargs):
 
 def get_global_config(input_args, env):
 
-    stabilized_obj_pose, _ = env.bullet_client.getBasePositionAndOrientation(env.obj_id)
+    # stabilized_obj_pose, _ = env.bullet_client.getBasePositionAndOrientation(env.obj_id)
+    stabilized_obj_pose = env.mj_client.default_object_pose
 
     search_space_bounding_box = env.search_space_bb
     n_domain_randomization_perturbations = eval_cfg.DOMAIN_RANDOMIZATION_N_NOISY_TRIALS \

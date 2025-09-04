@@ -86,8 +86,8 @@ def evaluate_6dof_pose(
 
     # Initialize running variables
     gripper_6dof_output_data = init_output_dict()
-    robot_id = env.robot_id
-    fingers_joint_infos = env.fingers_joint_infos
+    # robot_id = env.robot_id
+    # fingers_joint_infos = env.fingers_joint_infos
 
     if domain_randomization_args is not None:
         if domain_randomization_args['randomize_object_state']:
@@ -113,11 +113,13 @@ def evaluate_6dof_pose(
         gripper_6dof_output_data['is_overlap'] = False
 
     # Close gripper
-    is_obj_touched = env.close_gripper(
-        robot_id=robot_id,
-        fingers_joint_infos=fingers_joint_infos,
-        synergy_label=synergy_label,
-    )
+    # is_obj_touched = env.close_gripper(
+    #     robot_id=robot_id,
+    #     fingers_joint_infos=fingers_joint_infos,
+    #     synergy_label=synergy_label,
+    # )
+    
+    is_obj_touched = env.close_gripper()
     gripper_6dof_output_data['is_obj_touched'] = is_obj_touched
 
     # Discard if not touching the object

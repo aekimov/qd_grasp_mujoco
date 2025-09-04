@@ -75,7 +75,7 @@ def cvt_genome_to_6dof_pose_contact_strategy_search(robot_grasp_env, genome, rob
 
     # Apply standard approach-based method
     normal_at_contact_point = get_normal_surface_point(
-        bullet_client=robot_grasp_env.bullet_client,
+        bullet_client=robot_grasp_env.mj_client,
         list_of_points_for_each_triangle_object_mesh=robot_grasp_env.list_of_points_for_each_triangle_obj_mesh,
         object_normals_to_triangles=robot_grasp_env.object_normals_to_triangles,
         contact_point=closest_contact_point,
@@ -83,7 +83,7 @@ def cvt_genome_to_6dof_pose_contact_strategy_search(robot_grasp_env, genome, rob
     )
 
     gripper_6dof_pose = get_gripper_pose_relatively_to_contact_point_allegro_compatible(
-        bullet_client=robot_grasp_env.bullet_client,
+        bullet_client=robot_grasp_env.mj_client,
         hand_pose_from_contact_params=hand_pose_from_contact_params,
         normal_at_contact_point=normal_at_contact_point,
         contact_point=closest_contact_point,

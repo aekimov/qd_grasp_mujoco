@@ -591,8 +591,15 @@ def set_prehensor_from_quaternion_pose_orientation(
         combine_quat_wxyz[3],
         combine_quat_wxyz[0],
     ])
+    
+    combine_quat_xyzw_array = np.array([
+        combine_quat_wxyz[0],
+        combine_quat_wxyz[1],
+        combine_quat_wxyz[2],
+        combine_quat_wxyz[3],
+    ])
 
-    gripper_wrist_orient_quat = combine_quat_xyzw
+    gripper_wrist_orient_quat = combine_quat_xyzw_array # combine_quat_xyzw (Mujoco uses wzyz instead of xyzw)
     return gripper_wrist_orient_quat
 
 
@@ -797,14 +804,14 @@ def get_gripper_pose_relatively_to_contact_point_allegro_compatible(
 #         sphere = bullet_client.loadURDF(debug_obj, xyz, [0, 0, 0, 1])
 
 
-# def convert_mesh_pose_to_inertial_frame(obj_inertial_pose, meshpose2cvt):
-#     mesh2cvt_is_a_valid_vector = len(obj_inertial_pose) == meshpose2cvt.shape[0] \
-#         if len(meshpose2cvt.shape) == 1 else False
-#     mesh2cvt_is_a_valid_matrix = len(obj_inertial_pose) == meshpose2cvt.shape[1] \
-#         if len(meshpose2cvt.shape) == 2 else False
-#     assert mesh2cvt_is_a_valid_vector or mesh2cvt_is_a_valid_matrix
-#     meshpose2cvt -= obj_inertial_pose
-#     return meshpose2cvt
+def convert_mesh_pose_to_inertial_frame(obj_inertial_pose, meshpose2cvt):
+    mesh2cvt_is_a_valid_vector = len(obj_inertial_pose) == meshpose2cvt.shape[0] \
+        if len(meshpose2cvt.shape) == 1 else False
+    mesh2cvt_is_a_valid_matrix = len(obj_inertial_pose) == meshpose2cvt.shape[1] \
+        if len(meshpose2cvt.shape) == 2 else False
+    assert mesh2cvt_is_a_valid_vector or mesh2cvt_is_a_valid_matrix
+    meshpose2cvt -= obj_inertial_pose
+    return meshpose2cvt
 
 
 # def search_opposite_contact(bullet_client, normal_at_contact_point, contact_point, object_id):

@@ -31,7 +31,7 @@ class MjClient:
     def open_viewer(self):
         if self.viewer is None:
             self.viewer = mujoco.viewer.launch_passive(self.model, self.data)
-            self.viewer.cam.lookat[2] += 0.5
+            # self.viewer.cam.lookat[2] += 0.5
 
 
     def close(self):
@@ -40,12 +40,12 @@ class MjClient:
             self.viewer = None
                 
     # --- world-pose getters (read-only) ---
-    def _get_6dof_pose_gripper(self) -> Tuple[np.ndarray, np.ndarray]:
+    def _get_6dof_pose_gripper(self):
         jid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, "hand_free")
         bid = self.model.jnt_bodyid[jid]
         return self.data.xpos[bid].copy(), self.data.xquat[bid].copy()
 
-    def _get_6dof_pose_object(self) -> Tuple[np.ndarray, np.ndarray]:
+    def _get_6dof_pose_object(self):
         jid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, "can_free")
         bid = self.model.jnt_bodyid[jid]
         return self.data.xpos[bid].copy(), self.data.xquat[bid].copy()
@@ -130,7 +130,23 @@ class MjClient:
         self.reset_object_pose()
         self.reset_robot_fingers()
     
-    def close_gripper(self, actuator_names: list[str]):
+    # def close_gripper(self, actuator_names: list[str]):
+    #     actuator_ids = []
+    #     target_positions = []
+        
+    #     for name in actuator_names:
+    #         aid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_ACTUATOR, name)
+    #         target = self.model.actuator_ctrlrange[aid][1]
+    #         actuator_ids.append(aid)
+    #         target_positions.append(float(target))
+
+    #     for _ in range(MAX_STEP_CLOSE_GRIP):
+    #         for aid, target in zip(actuator_ids, target_positions):
+    #             self.data.ctrl[aid] = target
+
+    #         self.step()
+            
+    def get_actuators_info(self, actuator_names: list[str]):
         actuator_ids = []
         target_positions = []
         
@@ -140,23 +156,15 @@ class MjClient:
             actuator_ids.append(aid)
             target_positions.append(float(target))
 
-        for _ in range(MAX_STEP_CLOSE_GRIP):
-            for aid, target in zip(actuator_ids, target_positions):
-                self.data.ctrl[aid] = target
-
-            mujoco.mj_step(self.model, self.data)
-
-            if self.viewer:
-                self.viewer.sync()
-                time.sleep(TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC)
+        return actuator_ids, target_positions
                 
-    def step(self, animate: bool = True):
+    def step(self):
         mujoco.mj_step(self.model, self.data)
-        if animate and self.viewer:
+        if self.viewer:
             self.viewer.sync()
             time.sleep(TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC)
 
-    def shake_gripper(self, animate: bool = True):
+    def shake_gripper(self):
         p0 = self.default_gripper_pose.copy()
         q0 = self.default_gripper_orient.copy()
 
@@ -179,7 +187,7 @@ class MjClient:
                     t = (k + 1) / float(hold)
                     p = (1.0 - t) * p_start + t * p_goal
                     self.set_6dof_pose_gripper(p, q0)   # keep orientation fixed
-                    self.step(animate)
+                    self.step()
 
         self.reset()
         

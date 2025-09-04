@@ -42,7 +42,7 @@ def get_replay_grasps_kwargs():
 
 def replay_6dof_specific_pose(env, all_6dof_pose_data, display_flags):
 	robot_id = env.robot_id
-	fingers_joint_infos = env.fingers_joint_infos
+	# fingers_joint_infos = env.fingers_joint_infos
 
 	i_ind2display = display_flags['i_ind2display']
 	gripper_6dof_pose = all_6dof_pose_data[i_ind2display]['6dof_pose']
@@ -68,11 +68,12 @@ def replay_6dof_specific_pose(env, all_6dof_pose_data, display_flags):
 		if init_joint_state_genes is not None:
 			env.set_joint_states_from_genes(init_joint_state_genes)
 
-		env.close_gripper(
-			robot_id=robot_id,
-			fingers_joint_infos=fingers_joint_infos,
-			synergy_label=synergy_label
-		)
+		# env.close_gripper(
+		# 	robot_id=robot_id,
+		# 	fingers_joint_infos=fingers_joint_infos,
+		# 	synergy_label=synergy_label
+		# )
+		env.close_gripper()
 
 		if display_flags['shake']:
 			are_all_shakes_successful = rg_db.apply_all_gripper_shaking_debug(env)
@@ -117,11 +118,12 @@ def replay_all_6dof_poses(env, all_6dof_pose_data, display_flags):
 		if init_joint_state_genes is not None:
 			env.set_joint_states_from_genes(init_joint_state_genes)
 
-		env.close_gripper(
-			robot_id=robot_id,
-			fingers_joint_infos=fingers_joint_infos,
-			synergy_label=synergy_label
-		)
+		# env.close_gripper(
+		# 	robot_id=robot_id,
+		# 	fingers_joint_infos=fingers_joint_infos,
+		# 	synergy_label=synergy_label
+		# )
+		env.close_gripper()
 		if display_flags['shake']:
 			are_all_shakes_successful = rg_db.apply_all_gripper_shaking_debug(env)
 			print(f'(id={scs_ind_id}) are_all_shakes_successful={are_all_shakes_successful}')
