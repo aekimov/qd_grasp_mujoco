@@ -1,5 +1,3 @@
-import pdb
-
 import numpy as np
 import argparse
 import sys
@@ -84,7 +82,7 @@ def replay_6dof_specific_pose(env, all_6dof_pose_data, display_flags):
 
 def replay_all_6dof_poses(env, all_6dof_pose_data, display_flags):
 	robot_id = env.robot_id
-	fingers_joint_infos = env.fingers_joint_infos
+	# fingers_joint_infos = env.fingers_joint_infos
 
 	all_all_6dof_pose_ids = list(all_6dof_pose_data.keys())
 	if display_flags['shuffle_inds']:

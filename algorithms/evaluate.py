@@ -107,7 +107,9 @@ def evaluate_6dof_pose(
 
     # Check for overlapping
     is_there_overlap = env.is_there_overlapping()
+    
     if is_there_overlap:
+        print(f'OVERLAPPING={is_there_overlap}')
         return get_overlap_output_dict()
     else:
         gripper_6dof_output_data['is_overlap'] = False

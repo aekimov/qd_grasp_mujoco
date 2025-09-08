@@ -1,6 +1,6 @@
 <mujoco model="shadow_hand_scene">
 	<statistic extent="0.3" center="0.3 0 0"/>
-	<option gravity="0 0 -1"/>
+	<option gravity="0 0 0"/>
 	<visual>
 		<rgba haze="0.15 0.25 0.35 1"/>
 		<quality shadowsize="8192"/>
@@ -30,7 +30,7 @@
 
 			<!-- Move the attached model so the wrist/palm aligns with hand_root origin.
 				Example: if wrist is 0.30 m +x from the forearm frame, shift forearm back by -0.30 -->
-			<body name="hand_offset" pos="-0.3 0 0">   <!-- adjust this vector once -->
+			<body name="hand_offset" pos="-0.33 0 0">   <!-- adjust this vector once -->
 				<attach model="shadow_hand_model" body="rh_forearm" prefix=""/>
 			</body>
     	</body>

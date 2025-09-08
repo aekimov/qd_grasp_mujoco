@@ -44,14 +44,12 @@ class MjRobotGrasping:
             pose_relative_to_contact_point_d_min=pose_relative_to_contact_point_d_min,
             pose_relative_to_contact_point_d_max=pose_relative_to_contact_point_d_max
         )
-        
-        # self.sim_engine.reset(mj_client=self._mj_client)
 
         if remove_gripper:
             raise NotImplementedError('Not implemented remove_gripper function')
         
         self._debug = debug
-        self.debug_i_debug_bodies = []  # for debugging purpose
+        self.debug_i_debug_bodies = []
 
     @property
     def robot_id(self):
@@ -151,8 +149,6 @@ class MjRobotGrasping:
             start_orient_robot_quat=gripper_6dof_pose['quaternions'],
         )
 
-        # self._mj_client.stepSimulation()
-
     def _cvt_genome2synergy_label(self, synergy_label, debug=False):
         raise NotImplementedError('Must be overwritten in robot_grasping subclasses.')
 
@@ -174,7 +170,6 @@ class MjRobotGrasping:
 
         if not is_obj_touched:
             is_obj_touched = self.sim_engine.is_grasping_candidate(mj_client=self._mj_client)
-            # is_obj_touched = self.sim_engine.are_fingers_touching_object(mj_client=self._mj_client)
 
         return is_obj_touched
 

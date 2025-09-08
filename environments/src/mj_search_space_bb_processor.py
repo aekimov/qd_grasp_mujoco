@@ -65,19 +65,32 @@ def big_boundary_box(model, data, body_name):
     
     return aabb_min, aabb_max
 
+# def is_descendant_body(model, parent_id, body_id):
+#     """Check if body_id is a descendant of parent_id (or is parent_id itself)"""
+#     if body_id == parent_id:
+#         return True
+    
+#     # Traverse up the parent chain from body_id
+#     current = body_id
+#     while current != 0:  # 0 is world body
+#         current = model.body_parentid[current]
+#         if current == parent_id:
+#             return True
+#         if current == 0:  # reached world body
+#             break
+    
+#     return False
+
 def is_descendant_body(model, parent_id, body_id):
-    """Check if body_id is a descendant of parent_id (or is parent_id itself)"""
+    """Check if body_id is a descendant of parent_id"""
     if body_id == parent_id:
         return True
     
-    # Traverse up the parent chain from body_id
     current = body_id
-    while current != 0:  # 0 is world body
+    while current > 0:  # Stop at world (0) or invalid (-1)
         current = model.body_parentid[current]
         if current == parent_id:
             return True
-        if current == 0:  # reached world body
-            break
     
     return False
 
