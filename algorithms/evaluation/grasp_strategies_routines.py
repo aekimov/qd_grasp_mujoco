@@ -208,12 +208,14 @@ def calculate_normal_from_surface(bullet_client, list_of_points_for_each_triangl
     normal_at_contact_point = get_normal_to_surface_at_contact_point(object_normals_to_triangles, id_min_dist_triangle)
 
     if debug:
-        display_normal_to_contact_point_debug(
-            bullet_client=bullet_client,
-            normal_at_contact_point=normal_at_contact_point,
-            sphere_closest_point=sphere_closest_point,
-            color_display=[0, 255, 0]
-        )
+        bullet_client.draw_normal(pos=contact_point, normal=normal_at_contact_point)
+        bullet_client.debug_sync()
+    #     display_normal_to_contact_point_debug(
+    #         bullet_client=bullet_client,
+    #         normal_at_contact_point=normal_at_contact_point,
+    #         sphere_closest_point=sphere_closest_point,
+    #         color_display=[0, 255, 0]
+    #     )
 
     return normal_at_contact_point
 
@@ -405,11 +407,17 @@ def find_nearest_point_in_the_object(bullet_client, list_of_points_for_each_tria
     closest_triangle = list_of_points_for_each_triangle[id_min_dist_triangle]
 
     if debug:
-        display_closest_triangle_debug(bullet_client=bullet_client, closest_triangle=closest_triangle)
+        bullet_client.debug_clear()
+        bullet_client.draw_triangle(closest_triangle)
+        bullet_client.draw_sphere(closest_point_in_triangle_min_dist)
+        # bullet_client.debug_sync()
+        # display_closest_triangle_debug(bullet_client=bullet_client, closest_triangle=closest_triangle)
 
-    sphere_closest_point = display_closest_point_in_triangle_debug(
-        bullet_client=bullet_client, closest_point_in_triangle_min_dist=closest_point_in_triangle_min_dist) if debug \
-        else None
+    # sphere_closest_point = display_closest_point_in_triangle_debug(
+    #     bullet_client=bullet_client, closest_point_in_triangle_min_dist=closest_point_in_triangle_min_dist) if debug \
+    #     else None
+        
+    sphere_closest_point = None
 
     return id_min_dist_triangle, sphere_closest_point
 
@@ -592,14 +600,14 @@ def set_prehensor_from_quaternion_pose_orientation(
         combine_quat_wxyz[0],
     ])
     
-    combine_quat_xyzw_array = np.array([
+    combine_quat_wxyz_array = np.array([
         combine_quat_wxyz[0],
         combine_quat_wxyz[1],
         combine_quat_wxyz[2],
         combine_quat_wxyz[3],
     ])
 
-    gripper_wrist_orient_quat = combine_quat_xyzw_array # combine_quat_xyzw (Mujoco uses wzyz instead of xyzw)
+    gripper_wrist_orient_quat = combine_quat_wxyz_array # combine_quat_xyzw (Mujoco uses wxyz instead of xyzw)
     return gripper_wrist_orient_quat
 
 

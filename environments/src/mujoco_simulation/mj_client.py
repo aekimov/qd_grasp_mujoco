@@ -354,6 +354,51 @@ class MjClient:
             self.viewer.sync()
             
             
+    def debug_clear(self):
+        self.viewer.user_scn.ngeom = 0
+
+    def debug_sync(self):
+        self.viewer.sync()
+
+    def draw_triangle(self, tri, width=5.0, rgba=(1, 0, 0, 1)):
+        scn = self.viewer.user_scn
+        for a, b in ((tri[0], tri[1]), (tri[1], tri[2]), (tri[2], tri[0])):
+            g = scn.geoms[scn.ngeom]
+            mujoco.mjv_connector(
+                g, mujoco.mjtGeom.mjGEOM_LINE, float(width),
+                np.asarray(a, float), np.asarray(b, float)
+            )
+            g.rgba[:] = rgba
+            scn.ngeom += 1
+
+    def draw_sphere(self, pos, radius=0.01, rgba=(1, 0, 1, 1)):
+        scn = self.viewer.user_scn
+        g = scn.geoms[scn.ngeom]
+        mujoco.mjv_initGeom(
+            g,
+            type=mujoco.mjtGeom.mjGEOM_SPHERE,
+            size=(radius, radius, radius),
+            pos=np.asarray(pos, float),
+            mat=(1,0,0, 0,1,0, 0,0,1),
+            rgba=rgba,
+        )
+        scn.ngeom += 1
+        
+    def draw_normal(self, pos, normal, scale=0.2, width=3.0, rgba=(0, 1, 0, 1)):
+        """
+        Draw a line showing the normal direction starting at pos.
+        """
+        scn = self.viewer.user_scn
+        g = scn.geoms[scn.ngeom]
+        p0 = np.asarray(pos, float)
+        p1 = p0 + scale * np.asarray(normal, float)
+        mujoco.mjv_connector(
+            g, mujoco.mjtGeom.mjGEOM_LINE, float(width),
+            p0, p1
+        )
+        g.rgba[:] = rgba
+        scn.ngeom += 1
+
     # def close_gripper(self, actuator_names: list[str]):
     #     actuator_ids = []
     #     target_positions = []

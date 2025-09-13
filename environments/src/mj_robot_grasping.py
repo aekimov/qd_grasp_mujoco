@@ -133,7 +133,7 @@ class MjRobotGrasping:
         return self._debug
 
     def delete_debug_bodies(self):
-        raise NotImplementedError('Not implemented delete_debug_bodies function')
+        pass
         # if len(self.debug_i_debug_bodies) == 0:
         #     return
 
