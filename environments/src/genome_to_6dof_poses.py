@@ -72,14 +72,17 @@ def cvt_genome_to_6dof_pose_contact_strategy_search(robot_grasp_env, genome, rob
     query = [contact_point_finder_xyz_pose]
     closest_contact_point_id = robot_grasp_env.sim_engine.k_tree_uniform_contact_points.kneighbors(X=query)[1][0][0]
     closest_contact_point = robot_grasp_env.sim_engine.uniform_obj_contact_points[closest_contact_point_id]
-
+    
+    debug = robot_grasp_env.debug
+    # print(robot_grasp_env) #environments.src.robots.mj_shadow_hand_grasping.MjShadowHand
+    
     # Apply standard approach-based method
     normal_at_contact_point = get_normal_surface_point(
         bullet_client=robot_grasp_env.mj_client,
         list_of_points_for_each_triangle_object_mesh=robot_grasp_env.list_of_points_for_each_triangle_obj_mesh,
         object_normals_to_triangles=robot_grasp_env.object_normals_to_triangles,
         contact_point=closest_contact_point,
-        debug=True
+        debug=debug
     )
 
     gripper_6dof_pose = get_gripper_pose_relatively_to_contact_point_allegro_compatible(
@@ -88,7 +91,7 @@ def cvt_genome_to_6dof_pose_contact_strategy_search(robot_grasp_env, genome, rob
         normal_at_contact_point=normal_at_contact_point,
         contact_point=closest_contact_point,
         wrist_palm_offset_gripper=robot_grasp_env.wrist_palm_offset_gripper,
-        debug=False,
+        debug=debug,
         robot=robot,
     )
 

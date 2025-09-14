@@ -129,19 +129,6 @@ class MjRobotGrasping:
     def close(self):
         self._mj_client.close()
 
-    def is_debug_mode(self):
-        return self._debug
-
-    def delete_debug_bodies(self):
-        pass
-        # if len(self.debug_i_debug_bodies) == 0:
-        #     return
-
-        # for body_id in self.debug_i_debug_bodies:
-        #     self.mj_client.removeBody(body_id)
-
-        # self.debug_i_debug_bodies = []
-
     def set_6dof_gripper_pose(self, gripper_6dof_pose):
         self.sim_engine.set_6dof_pose_gripper(
             mj_client=self._mj_client,
@@ -155,16 +142,54 @@ class MjRobotGrasping:
     def _cvt_genome2init_joint_states(self, init_joint_state_genes):
         raise NotImplementedError('Must be overwritten in robot_grasping subclasses.')
 
-    def close_gripper(self): #robot_id
+    # def close_gripper(self): #robot_id
+    #     list_id_grip_fingers_actuated = self.list_id_gripper_fingers_actuated
+    #     max_n_step = self.sim_engine.gripper_parameters['max_n_step_close_grip']
+    #     is_obj_touched = False
+
+    #     for i_step in range(max_n_step):
+    #         actuator_ids, target_positions = self._mj_client.get_actuators_info(actuator_names=list_id_grip_fingers_actuated)
+            
+    #         for aid, target in zip(actuator_ids, target_positions):
+    #             self._mj_client.data.ctrl[aid] = target
+
+    #         self._mj_client.step()
+
+    #     if not is_obj_touched:
+    #         is_obj_touched = self.sim_engine.is_grasping_candidate(mj_client=self._mj_client)
+
+    #     return is_obj_touched
+    
+    def close_gripper(self):
         list_id_grip_fingers_actuated = self.list_id_gripper_fingers_actuated
         max_n_step = self.sim_engine.gripper_parameters['max_n_step_close_grip']
         is_obj_touched = False
 
-        for i_step in range(max_n_step):
-            actuator_ids, target_positions = self._mj_client.get_actuators_info(actuator_names=list_id_grip_fingers_actuated)
-            
-            for aid, target in zip(actuator_ids, target_positions):
-                self._mj_client.data.ctrl[aid] = target
+        # Thumb slower than fingers
+        speed_factors = {
+            "J4": 0.9, "J3": 0.8, "J0": 0.6,           # fingers
+            "THJ5": 0.5, "THJ4": 0.4, "THJ3": 0.4,
+            "THJ2": 0.4, "THJ1": 0.4,                  # thumb joints slower
+        }
+
+        actuator_ids, target_positions = self._mj_client.get_actuators_info(
+            actuator_names=list_id_grip_fingers_actuated
+        )
+
+        for i_step in range(1, max_n_step + 1):
+            progress = i_step / max_n_step
+            for aid, name, target in zip(
+                actuator_ids, list_id_grip_fingers_actuated, target_positions
+            ):
+                start = self.sim_engine.gripper_default_joint_states[name]
+                factor = 1.0
+                for key, val in speed_factors.items():
+                    if key in name:
+                        factor = val
+                        break
+
+                # interpolate: start + factor * progress * (target - start)
+                self._mj_client.data.ctrl[aid] = start + factor * progress * (target - start)
 
             self._mj_client.step()
 

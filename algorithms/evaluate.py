@@ -109,7 +109,6 @@ def evaluate_6dof_pose(
     is_there_overlap = env.is_there_overlapping()
     
     if is_there_overlap:
-        print(f'OVERLAPPING={is_there_overlap}')
         return get_overlap_output_dict()
     else:
         gripper_6dof_output_data['is_overlap'] = False
@@ -274,9 +273,8 @@ def evaluate_grasp_ind(individual, env, eval_kwargs):
 
     gripper_6dof_output_data = evaluate_6dof_pose(**eval_6dof_pose_kwargs)
 
-    if env.is_debug_mode():
-        time.sleep(2)
-        env.delete_debug_bodies()
+    if env.debug:
+        time.sleep(1)
 
     is_valid = not gripper_6dof_output_data['is_overlap']
     is_obj_touched = gripper_6dof_output_data['is_obj_touched']

@@ -212,8 +212,7 @@ class MjClient:
         m, d = self.model, self.data
         robot_bid = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, "hand_root")
 
-        for i in range(d.ncon):
-            c = d.contact[i]
+        for c in d.contact:
             g1, g2 = int(c.geom1), int(c.geom2)
             b1, b2 = int(m.geom_bodyid[g1]), int(m.geom_bodyid[g2])
 
@@ -398,19 +397,3 @@ class MjClient:
         )
         g.rgba[:] = rgba
         scn.ngeom += 1
-
-    # def close_gripper(self, actuator_names: list[str]):
-    #     actuator_ids = []
-    #     target_positions = []
-        
-    #     for name in actuator_names:
-    #         aid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_ACTUATOR, name)
-    #         target = self.model.actuator_ctrlrange[aid][1]
-    #         actuator_ids.append(aid)
-    #         target_positions.append(float(target))
-
-    #     for _ in range(MAX_STEP_CLOSE_GRIP):
-    #         for aid, target in zip(actuator_ids, target_positions):
-    #             self.data.ctrl[aid] = target
-
-    #         self.step()

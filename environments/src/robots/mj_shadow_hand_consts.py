@@ -125,7 +125,7 @@ ALL_ACTUATORS = WRIST_ACTUATORS + ALL_FINGER_ACTUATORS
 # ========================================
 
 GRIPPER_PARAMETERS = {
-    'max_n_step_close_grip': 100,
+    'max_n_step_close_grip': 150,
     'max_velocity_maintain_6dof': 10,
     'force_maintain_6dof': 1000
 }

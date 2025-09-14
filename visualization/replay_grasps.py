@@ -112,7 +112,7 @@ def replay_all_6dof_poses(env, all_6dof_pose_data, display_flags):
 		env.reset()
 
 		env.set_6dof_gripper_pose(gripper_6dof_pose)
-
+		print(env.is_there_overlapping())
 		if init_joint_state_genes is not None:
 			env.set_joint_states_from_genes(init_joint_state_genes)
 
