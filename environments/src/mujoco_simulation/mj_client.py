@@ -6,7 +6,7 @@ import environments.src.robots.mj_shadow_hand_consts as sh_consts
 import environments.src.env_constants as env_consts
 from environments.src.mj_search_space_bb_processor import get_body_aabb, get_search_space_bb, is_descendant_body
 
-TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC = 0.02
+TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC = 0.02 / 2
 
 class MjClient:
     def __init__(self, xml_path: str, display: bool = False):
@@ -209,17 +209,26 @@ class MjClient:
     #     return False
     
     def is_there_overlapping(self) -> bool:
-        m, d = self.model, self.data
-        robot_bid = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, "hand_root")
-
-        for c in d.contact:
-            g1, g2 = int(c.geom1), int(c.geom2)
-            b1, b2 = int(m.geom_bodyid[g1]), int(m.geom_bodyid[g2])
-
-            if b1 == robot_bid or b2 == robot_bid:
-                if c.dist < 0.0:   # penetration
-                    return True
+        """Check for penetrating contacts involving the robot hand"""
+        contacts = self.get_hand_object_contacts()
+        
+        # Check if any contact has negative distance (penetration)
+        for contact in contacts:
+            if contact['dist'] < 0.0:  # penetration
+                return True
         return False
+
+    def draw_line(self, pos1, pos2, width=3.0, rgba=(1, 0, 0, 1)):
+        scn = self.viewer.user_scn
+        g = scn.geoms[scn.ngeom]
+        p0 = np.asarray(pos1, float)
+        p1 = np.asarray(pos2, float)
+        mujoco.mjv_connector(
+            g, mujoco.mjtGeom.mjGEOM_LINE, float(width),
+            p0, p1
+        )
+        g.rgba[:] = rgba
+        scn.ngeom += 1
 
     def show_debug_cube(self, center=(0,0,0.2), half_size=(0.05,0.05,0.05), rgba=(0,1,0,0.5)):
         while self.viewer.is_running():

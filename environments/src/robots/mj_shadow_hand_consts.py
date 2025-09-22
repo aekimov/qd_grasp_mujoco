@@ -157,7 +157,7 @@ DEFAULT_JOINT_STATES = {
     A_LFJ0: 0.0,
     
     A_THJ5: 0.0,
-    A_THJ4: 1.22,
+    A_THJ4: 0.0,  # 1.22
     A_THJ3: 0.0,
     A_THJ2: 0.0,
     A_THJ1: 0.0,
@@ -180,7 +180,7 @@ WRIST_PALM_OFFSET = 0.0  # CODE DE MATHILDE : "PALM_WIRST"
 
 # EXTREMITY_PALM represents the distance from the palm base to the fingertip extremities when the hand is fully extended.
 EXTREMITY_PALM = 0.145
-HALF_PALM_DEPTH = 0.001
+HALF_PALM_DEPTH = 0.003
 
 MAX_HAND_STANDOFF = EXTREMITY_PALM
 

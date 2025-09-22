@@ -93,12 +93,8 @@ def generate_conic_surface(bullet_client, contact_point, y_vector_normalized_B1,
     )
 
     if debug:
-        bullet_client.addUserDebugLine(
-            lineFromXYZ=contact_point_np,
-            lineToXYZ=x_prime_prime_B1,
-            lineColorRGB=[0, 255, 255],
-            lineWidth=1
-        )
+        bullet_client.draw_line(contact_point_np, contact_point_np + x_prime_prime_B1, width=1.0, rgba=(0, 1, 1, 1))
+        bullet_client.debug_sync()
     return x_prime_prime_B1
 
 
@@ -208,8 +204,10 @@ def calculate_normal_from_surface(bullet_client, list_of_points_for_each_triangl
     normal_at_contact_point = get_normal_to_surface_at_contact_point(object_normals_to_triangles, id_min_dist_triangle)
 
     if debug:
-        bullet_client.draw_normal(pos=contact_point, normal=normal_at_contact_point)
-        bullet_client.debug_sync()
+        pass
+        # bullet_client.draw_normal(pos=contact_point, normal=normal_at_contact_point)
+        # bullet_client.debug_sync()
+        
     #     display_normal_to_contact_point_debug(
     #         bullet_client=bullet_client,
     #         normal_at_contact_point=normal_at_contact_point,
@@ -726,7 +724,7 @@ def get_gripper_pose_relatively_to_contact_point_allegro_compatible(
         y_vector_normalized_B1=y_vector_normalized_B1,
         theta_rad=nu_wrap_rad,
         x_vector_B1_prime=x_vector_B1_prime,
-        debug=False
+        debug=debug
     )
 
     x_prime_prime_prime_B1 = rotate_vector_from_axis_and_angle(
