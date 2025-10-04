@@ -3,7 +3,7 @@ import evolutionary_process
 import sys
 from multiprocessing import Pool
 import multiprocessing
-multiprocessing.set_start_method('fork')  # Only works on Unix systems
+# multiprocessing.set_start_method('fork')  # Only works on Unix systems
 
 from utils.args_processor import get_qd_algo_args, get_input_arguments
 from utils.common_tools import get_new_run_name
@@ -110,10 +110,37 @@ def get_global_config(input_args, env):
     return global_config
 
 
+# Global worker environment - created once per worker process
+_worker_env = None
+
+def _worker_init(env_class, env_kwargs):
+    """Initialize one environment per worker process."""
+    global _worker_env
+    _worker_env = env_class(**env_kwargs)
+
+def _worker_evaluate(individual, eval_kwargs):
+    """Use worker's persistent environment."""
+    from algorithms.evaluate import evaluate_grasp_ind_routine
+    global _worker_env
+    return evaluate_grasp_ind_routine(individual, _worker_env, eval_kwargs)
+
 def run_qd_routine(**qd_algo_args):
 
     if qd_algo_args['parallelize']:
-        with Pool() as multiproc_pool:
+        from functools import partial
+        
+        # Get original environment info BEFORE replacing the function
+        original_env = qd_algo_args['evaluation_function'].keywords['env']
+        eval_kwargs = qd_algo_args['evaluation_function'].keywords['eval_kwargs']
+        
+        # Create worker evaluation function
+        worker_eval_func = partial(_worker_evaluate, eval_kwargs=eval_kwargs)
+        qd_algo_args['evaluation_function'] = worker_eval_func
+        
+        with Pool(
+            initializer=_worker_init,
+            initargs=(original_env.__class__, {'object_name': 'can', 'display': False, 'debug': False})
+        ) as multiproc_pool:
             qd_algo_args['multiproc_pool'] = multiproc_pool
             archive_success_len = evolutionary_process.run_qd(**qd_algo_args)
     else:
