@@ -37,7 +37,7 @@ def cvt_genome_to_preset_6dof_pose_contact_strat_contact_point_finder(robot_gras
         x_start=nu_genome
     )
 
-    # nu_projected = np.pi/ 2
+    # nu_projected = np.pi
 
     d_projected = project_from_to_value(
         interval_from=qd_cfg.FIXED_INTERVAL_GENOME,
@@ -104,7 +104,7 @@ def cvt_genome_to_6dof_pose_contact_strategy_search(robot_grasp_env, genome, rob
         standoff_d = hand_pose_from_contact_params['d']
         
         print(f"Contact: [{closest_contact_point[0]:.3f}, {closest_contact_point[1]:.3f}, {closest_contact_point[2]:.3f}]")
-        print(f"Hand: [{hand_pos[0]:.3f}, {hand_pos[1]:.3f}, {hand_pos[2]:.3f}]")
+        print(f"Hand XYZ: [{hand_pos[0]:.3f}, {hand_pos[1]:.3f}, {hand_pos[2]:.3f}]")
         print(f"Hand quat (WXYZ): [{hand_quat[0]:.3f}, {hand_quat[1]:.3f}, {hand_quat[2]:.3f}, {hand_quat[3]:.3f}]")
         print(f"Standoff d: {standoff_d:.3f}, Actual distance: {distance_to_contact:.3f}")
         print(f"Angles - nu: {hand_pose_from_contact_params['nu']:.3f} rad ({np.degrees(hand_pose_from_contact_params['nu']):.1f}°), ksi: {hand_pose_from_contact_params['ksi']:.3f} rad ({np.degrees(hand_pose_from_contact_params['ksi']):.1f}°), omega: {hand_pose_from_contact_params['omega']:.3f} rad ({np.degrees(hand_pose_from_contact_params['omega']):.1f}°)")

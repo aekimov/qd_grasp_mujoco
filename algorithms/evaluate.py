@@ -96,12 +96,13 @@ def evaluate_6dof_pose(
             env.add_noise_to_friction_coefficients()
 
     # Apply 6DoF pose to grasp env
-    env.set_6dof_gripper_pose(gripper_6dof_pose)
     debug_snippet_flg = False
     if debug_snippet_flg:
         gripper_6dof_pose = force_gripper_6dof_pose_debug_snippet(gripper_6dof_pose)
         env.set_6dof_gripper_pose(gripper_6dof_pose)
-
+    else:
+        env.set_6dof_gripper_pose(gripper_6dof_pose)
+        
     if init_joint_state_genes is not None:
         env.set_joint_states_from_genes(init_joint_state_genes)
 
@@ -305,7 +306,9 @@ def exception_handler_evaluate_grasp_ind(individual, eval_kwargs):
 
 def force_gripper_6dof_pose_debug_snippet(gripper_6dof_pose):
     """Debug function. Change these values to debug hand closure."""
-    gripper_6dof_pose['xyz'] = [0, 0, 0.6]
-    gripper_6dof_pose['quaternions'] = [0, 0, 0, 1]
+    gripper_6dof_pose['xyz'] = [0, 0.06, 0]
+    gripper_6dof_pose['quaternions'] = [1, 0, -1, 1]
     return gripper_6dof_pose
 
+
+# pos="0 0.06 0" quat="0 0 -1 1">

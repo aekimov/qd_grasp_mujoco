@@ -212,6 +212,7 @@ class MjClient:
         """Check for penetrating contacts involving the robot hand"""
         contacts = self.get_hand_object_contacts()
         
+        return len(contacts) != 0
         # Check if any contact has negative distance (penetration)
         for contact in contacts:
             if contact['dist'] < 0.0:  # penetration

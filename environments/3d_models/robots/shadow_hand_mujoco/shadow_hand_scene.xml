@@ -27,10 +27,11 @@
 		<body name="hand_root" pos="0 0 0.8">
 			<freejoint name="hand_free"/>
 			<!-- <geom type="box" size="0.01 0.01 0.04" rgba="1 0 0 0.3" contype="0" conaffinity="0"/> -->
+			<geom type="sphere" size="0.005" rgba="1 0 0 0.3" contype="0" conaffinity="0"/>
 
 			<!-- Move the attached model so the wrist/palm aligns with hand_root origin.
 				Example: if wrist is 0.30 m +x from the forearm frame, shift forearm back by -0.30 -->
-			<body name="hand_offset" pos="-0.33 0 0">   <!-- adjust this vector once -->
+			<body name="hand_offset" pos="-0.33 0 -0.02">   <!-- adjust this vector once -->
 				<attach model="shadow_hand_model" body="rh_forearm" prefix=""/>
 			</body>
     	</body>
