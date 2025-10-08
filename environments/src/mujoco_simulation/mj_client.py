@@ -6,7 +6,9 @@ import environments.src.robots.mj_shadow_hand_consts as sh_consts
 import environments.src.env_constants as env_consts
 from environments.src.mj_search_space_bb_processor import get_body_aabb, get_search_space_bb, is_descendant_body
 
-TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC = 0.02 / 2
+from scipy.spatial.transform import Rotation as R
+
+TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC = 0.02 / 5
 
 class MjClient:
     def __init__(self, xml_path: str, display: bool = False):
@@ -161,31 +163,90 @@ class MjClient:
                 self.viewer = None
                 raise KeyboardInterrupt("Viewer was closed by user")
 
+    def shake_translation(self, target_position, steps, axis='x'):
+        """Apply translation shake along specified axis"""
+        p0, q0 = self._get_6dof_pose_gripper()
+        
+        axis_vector = np.zeros(3)
+        if axis == 'x':
+            axis_vector[0] = 1.0
+        elif axis == 'y':
+            axis_vector[1] = 1.0
+        elif axis == 'z':
+            axis_vector[2] = 1.0
+        
+        p_goal = p0 + target_position * axis_vector
+        p_start = self.data.mocap_pos[self.model.body_mocapid[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "hand_target")
+        ]].copy()
+        
+        for k in range(steps):
+            t = (k + 1) / float(steps)
+            p = (1.0 - t) * p_start + t * p_goal
+            self.set_6dof_pose_gripper_shake(p, q0)
+            self.step()
+    
+    def shake_rotation(self, target_angle, steps, axis='y'):
+        """Apply rotation shake around specified axis (around forearm pivot point)"""        
+        hand_offset = np.array([0.33, 0.0, 0.02])
+        
+        p_current = self.data.mocap_pos[self.model.body_mocapid[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "hand_target")
+        ]].copy()
+        
+        q_current = self.data.mocap_quat[self.model.body_mocapid[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "hand_target")
+        ]].copy()
+        
+        q_current_scipy = np.array([q_current[1], q_current[2], q_current[3], q_current[0]])
+        rot_axis = R.from_euler(axis, target_angle, degrees=False)
+        rot_current = R.from_quat(q_current_scipy)
+        rot_goal = rot_axis * rot_current
+        q_goal_scipy = rot_goal.as_quat()
+        q_goal = np.array([q_goal_scipy[3], q_goal_scipy[0], q_goal_scipy[1], q_goal_scipy[2]])
+        
+        rot_current_matrix = R.from_quat(q_current_scipy).as_matrix()
+        offset_current = rot_current_matrix @ hand_offset
+        pivot_point = p_current - offset_current + hand_offset
+        
+        for k in range(steps):
+            t = (k + 1) / float(steps)
+            q_current_scipy = np.array([q_current[1], q_current[2], q_current[3], q_current[0]])
+            rot_start = R.from_quat(q_current_scipy)
+            rot_interp = rot_start.as_quat() * (1 - t) + rot_goal.as_quat() * t
+            rot_interp = R.from_quat(rot_interp / np.linalg.norm(rot_interp))
+            q_interp_scipy = rot_interp.as_quat()
+            q_interp = np.array([q_interp_scipy[3], q_interp_scipy[0], q_interp_scipy[1], q_interp_scipy[2]])
+            
+            rot_matrix = R.from_quat(q_interp_scipy).as_matrix()
+            offset_rotated = rot_matrix @ hand_offset
+            p_rotated = pivot_point + offset_rotated - hand_offset
+            
+            self.set_6dof_pose_gripper_shake(p_rotated, q_interp)
+            self.step()
+    
     def shake_gripper(self):
-        p0 = self.default_gripper_pose.copy()
-        q0 = self.default_gripper_orient.copy()
-
-        amp = 0.2
+        """Test function for visualizing both translation and rotation shakes"""
+        translation_amp = 0.2
+        rotation_amp = np.pi / 4
         n_shake = env_consts.SHAKING_PARAMETERS['n_shake']
         hold = env_consts.SHAKING_PARAMETERS.get('t_cmd_stable', 50)
+        targets = [1.0, -1.0, 0.0]
+        
+        print(f"\nShake test: translation={translation_amp}m, rotation={np.degrees(rotation_amp):.1f}°, n_shake={n_shake}")
+        
+        for i_shake in range(n_shake):
+            print(f"Shake {i_shake + 1}/{n_shake}")
+            
+            print("  Translation shake (X-axis)")
+            for dx_factor in targets:
+                self.shake_translation(translation_amp * dx_factor, hold, axis='x')
+            
+            print("  Rotation shake (Y-axis around forearm)")
+            for angle_factor in targets:
+                self.shake_rotation(rotation_amp * angle_factor, hold, axis='y')
 
-        targets = [amp, -amp, 0.0]
-
-        for _ in range(n_shake):
-            for dx in targets:
-                p_goal = p0 + np.array([dx, 0.0, 0.0])    # translate along X only
-                # linearly ramp from current pose to goal over `hold` frames
-                # start from whatever we last set (use current qpos as start)
-                p_start = self.data.mocap_pos[self.model.body_mocapid[
-                    mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "hand_target")
-                ]].copy()
-
-                for k in range(hold):
-                    t = (k + 1) / float(hold)
-                    p = (1.0 - t) * p_start + t * p_goal
-                    self.set_6dof_pose_gripper(p, q0)   # keep orientation fixed
-                    self.step()
-
+        print("Shake test completed!")
         self.reset()
         
     def is_there_contacts(self) -> bool:

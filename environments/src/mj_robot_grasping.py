@@ -249,12 +249,16 @@ class MjRobotGrasping:
         force = gripper_joint_infos['force']
         position_gain = gripper_joint_infos['position_gain']
         velocity_gain = gripper_joint_infos['velocity_gain']
+        joint_type = gripper_joint_infos['type']
+        joint_axis = gripper_joint_infos['axis']
         return {
             'joint_index': joint_index,
             'max_velocity': max_velocity,
             'force': force,
             'position_gain': position_gain,
-            'velocity_gain': velocity_gain
+            'velocity_gain': velocity_gain,
+            'joint_type': joint_type,
+            'joint_axis': joint_axis
         }
 
     def command_joint_pose(
@@ -265,18 +269,23 @@ class MjRobotGrasping:
             force,
             position_gain,
             velocity_gain,
+            joint_type,
+            joint_axis
     ):
         steps = env_consts.SHAKING_PARAMETERS['t_cmd_stable']
-
-        p0, q0 = self._mj_client._get_6dof_pose_gripper()
-        p_goal = p0 + np.array([target_position, 0, 0])
         
-        for k in range(steps):
-            t = (k + 1) / float(steps)
-            p = (1.0 - t) * p0 + t * p_goal
-            
-            self._mj_client.set_6dof_pose_gripper_shake(p, q0)
-            self._mj_client.step()
+        if joint_type == 'prismatic':
+            self._mj_client.shake_translation(
+                target_position=target_position,
+                steps=steps,
+                axis=joint_axis
+            )
+        elif joint_type == 'revolute':
+            self._mj_client.shake_rotation(
+                target_angle=target_position,
+                steps=steps,
+                axis=joint_axis
+            )
                 
     def is_there_overlapping(self):
         return self.sim_engine.is_there_overlapping(mj_client=self._mj_client)
