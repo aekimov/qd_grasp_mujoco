@@ -7,6 +7,7 @@ import environments.src.env_constants as env_consts
 from environments.src.mj_search_space_bb_processor import get_body_aabb, get_search_space_bb, is_descendant_body
 
 from scipy.spatial.transform import Rotation as R
+from scipy.spatial.transform import Slerp
 
 TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC = 0.02 / 5
 
@@ -187,44 +188,25 @@ class MjClient:
             self.step()
     
     def shake_rotation(self, target_angle, steps, axis='y'):
-        """Apply rotation shake around specified axis (around forearm pivot point)"""        
         hand_offset = np.array([0.33, 0.0, 0.02])
+        mocap_id = self.model.body_mocapid[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "hand_target")]
         
-        p_current = self.data.mocap_pos[self.model.body_mocapid[
-            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "hand_target")
-        ]].copy()
+        p_current = self.data.mocap_pos[mocap_id].copy()
+        q_current = self.data.mocap_quat[mocap_id].copy()
+        q_scipy = q_current[[1, 2, 3, 0]]
         
-        q_current = self.data.mocap_quat[self.model.body_mocapid[
-            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "hand_target")
-        ]].copy()
-        
-        q_current_scipy = np.array([q_current[1], q_current[2], q_current[3], q_current[0]])
-        rot_axis = R.from_euler(axis, target_angle, degrees=False)
-        rot_current = R.from_quat(q_current_scipy)
-        rot_goal = rot_axis * rot_current
-        q_goal_scipy = rot_goal.as_quat()
-        q_goal = np.array([q_goal_scipy[3], q_goal_scipy[0], q_goal_scipy[1], q_goal_scipy[2]])
-        
-        rot_current_matrix = R.from_quat(q_current_scipy).as_matrix()
-        offset_current = rot_current_matrix @ hand_offset
-        pivot_point = p_current - offset_current + hand_offset
+        rot_current = R.from_quat(q_scipy)
+        rot_goal = R.from_euler(axis, target_angle, degrees=False) * rot_current
+        slerp = Slerp([0, 1], R.from_quat([q_scipy, rot_goal.as_quat()]))
+        pivot_point = p_current - rot_current.apply(hand_offset) + hand_offset
         
         for k in range(steps):
-            t = (k + 1) / float(steps)
-            q_current_scipy = np.array([q_current[1], q_current[2], q_current[3], q_current[0]])
-            rot_start = R.from_quat(q_current_scipy)
-            rot_interp = rot_start.as_quat() * (1 - t) + rot_goal.as_quat() * t
-            rot_interp = R.from_quat(rot_interp / np.linalg.norm(rot_interp))
-            q_interp_scipy = rot_interp.as_quat()
-            q_interp = np.array([q_interp_scipy[3], q_interp_scipy[0], q_interp_scipy[1], q_interp_scipy[2]])
-            
-            rot_matrix = R.from_quat(q_interp_scipy).as_matrix()
-            offset_rotated = rot_matrix @ hand_offset
-            p_rotated = pivot_point + offset_rotated - hand_offset
-            
-            self.set_6dof_pose_gripper_shake(p_rotated, q_interp)
+            rot_interp = slerp([(k + 1) / steps])[0]
+            p_interp = pivot_point + rot_interp.apply(hand_offset) - hand_offset
+            q_interp = rot_interp.as_quat()[[3, 0, 1, 2]]
+            self.set_6dof_pose_gripper_shake(p_interp, q_interp)
             self.step()
-    
+        
     def shake_gripper(self):
         """Test function for visualizing both translation and rotation shakes"""
         translation_amp = 0.2
@@ -235,18 +217,13 @@ class MjClient:
         
         print(f"\nShake test: translation={translation_amp}m, rotation={np.degrees(rotation_amp):.1f}°, n_shake={n_shake}")
         
-        for i_shake in range(n_shake):
-            print(f"Shake {i_shake + 1}/{n_shake}")
-            
-            print("  Translation shake (X-axis)")
+        for i_shake in range(n_shake):            
             for dx_factor in targets:
                 self.shake_translation(translation_amp * dx_factor, hold, axis='x')
             
-            print("  Rotation shake (Y-axis around forearm)")
             for angle_factor in targets:
                 self.shake_rotation(rotation_amp * angle_factor, hold, axis='y')
 
-        print("Shake test completed!")
         self.reset()
         
     def is_there_contacts(self) -> bool:
