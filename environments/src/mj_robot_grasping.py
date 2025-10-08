@@ -163,7 +163,6 @@ class MjRobotGrasping:
     def close_gripper(self):
         list_id_grip_fingers_actuated = self.list_id_gripper_fingers_actuated
         max_n_step = self.sim_engine.gripper_parameters['max_n_step_close_grip']
-        is_obj_touched = False
 
         # Thumb slower than fingers
         speed_factors = {
@@ -193,8 +192,7 @@ class MjRobotGrasping:
 
             self._mj_client.step()
 
-        if not is_obj_touched:
-            is_obj_touched = self.sim_engine.is_grasping_candidate(mj_client=self._mj_client)
+        is_obj_touched = self.sim_engine.is_grasping_candidate(mj_client=self._mj_client)
 
         return is_obj_touched
 

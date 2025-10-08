@@ -24,13 +24,22 @@ class MjShadowHand(MjRobotGrasping):
     def __init__(self, **kwargs):
         scene_path = init_shadow_hand_scene()
 
+        self.joint_lock = kwargs.get('joint_lock', 'none')
+        aa_config = kwargs.get('aa_config', 'default')
+
         list_id_gripper_fingers = sh_consts.ALL_FINGER_ACTUATORS
-        list_id_gripper_fingers_actuated = sh_consts.GRIPPER_ACTUATORS_ALL_FINGERS
+        list_id_gripper_fingers_actuated = sh_consts.filter_actuators_by_joint_lock(
+            sh_consts.GRIPPER_ACTUATORS_ALL_FINGERS,
+            self.joint_lock,
+        )
+        
+        # list_id_gripper_fingers = sh_consts.ALL_FINGER_ACTUATORS
+        # list_id_gripper_fingers_actuated = sh_consts.GRIPPER_ACTUATORS_ALL_FINGERS
 
         gripper_6dof_infos = sh_consts.GRIPPER_6DOF_INFOS
         gripper_parameters = sh_consts.GRIPPER_PARAMETERS
 
-        gripper_default_joint_states = sh_consts.DEFAULT_JOINT_STATES
+        self.gripper_default_joint_states = sh_consts.get_default_joint_states_with_aa_config(aa_config)
 
         max_standoff_gripper = sh_consts.MAX_HAND_STANDOFF
         wrist_palm_offset_gripper = sh_consts.WRIST_PALM_OFFSET
@@ -45,7 +54,7 @@ class MjShadowHand(MjRobotGrasping):
             list_id_gripper_fingers_actuated=list_id_gripper_fingers_actuated,
             gripper_6dof_infos=gripper_6dof_infos,
             gripper_parameters=gripper_parameters,
-            gripper_default_joint_states=gripper_default_joint_states,
+            gripper_default_joint_states=self.gripper_default_joint_states,
             max_standoff_gripper=max_standoff_gripper,
             half_palm_depth_offset_gripper=half_palm_depth_offset_gripper,
             wrist_palm_offset_gripper=wrist_palm_offset_gripper,
@@ -56,7 +65,8 @@ class MjShadowHand(MjRobotGrasping):
         )
 
     def _cvt_genome2synergy_label(self, synergy_label, debug=False):
-        return sh_consts.GRIPPER_ACTUATORS_ALL_FINGERS
+        actuated = sh_consts.GRIPPER_ACTUATORS_ALL_FINGERS
+        return sh_consts.filter_actuators_by_joint_lock(actuated, self.joint_lock)
 
     def _cvt_genome2init_joint_states(self, init_joint_state_genes):
         raise NotImplementedError('Undefined _cvt_genome2init_joint_states for the current gripper.')

@@ -170,7 +170,7 @@ class MjSimulationEngine:
         self._search_space_bb = get_search_space_bb(model=mj_client.model, data=mj_client.data, robot_name="hand_root", object_name="can")
         self._search_space_bb_side = get_search_space_bb_side(self._search_space_bb)
         
-        mj_client.reset_robot_fingers()
+        self.reset(mj_client=mj_client)
 
     def set_6dof_pose_gripper(self, mj_client: MjClient, start_pos_robot_xyz, start_orient_robot_quat):
         mj_client.set_6dof_pose_gripper(start_pos_robot_xyz, start_orient_robot_quat)
@@ -179,7 +179,7 @@ class MjSimulationEngine:
         return mj_client.is_there_contacts()
 
     def reset(self, mj_client: MjClient):
-        mj_client.reset_robot_fingers()
+        mj_client.reset_robot_fingers(default_joint_states=self._gripper_default_joint_states)
         mj_client.reset_object_pose()
 
     def is_there_overlapping(self, mj_client: MjClient):

@@ -172,6 +172,127 @@ TENDON_TO_JOINTS = {
 
 
 # ---------------------------------------------- #
+#           ACTUATOR LOCKING CONFIGURATIONS
+# ---------------------------------------------- #
+
+# All actuators for each finger (using actuator names)
+INDEX_FINGER_ACTS = [A_FFJ4, A_FFJ3, A_FFJ0]
+MIDDLE_FINGER_ACTS = [A_MFJ4, A_MFJ3, A_MFJ0]
+RING_FINGER_ACTS = [A_RFJ4, A_RFJ3, A_RFJ0]
+LITTLE_FINGER_ACTS = [A_LFJ5, A_LFJ4, A_LFJ3, A_LFJ0]
+THUMB_ACTS = [A_THJ5, A_THJ4, A_THJ3, A_THJ2, A_THJ1]
+
+# Function to filter actuators based on joint lock configuration
+def filter_actuators_by_joint_lock(actuator_list, joint_lock='none'):
+    """
+    Filter out locked actuators from the actuator list based on joint lock configuration.
+    
+    Args:
+        actuator_list: List of actuator names to potentially actuate
+        joint_lock: Configuration name for locking
+    
+    Returns:
+        Filtered list of actuator names that should be actuated
+    """
+    if joint_lock == 'none':
+        return actuator_list
+    
+    locked_acts = []
+    
+    # Finger locking configurations
+    if joint_lock == 'lock_index':
+        locked_acts = INDEX_FINGER_ACTS
+    elif joint_lock == 'lock_middle':
+        locked_acts = MIDDLE_FINGER_ACTS
+    elif joint_lock == 'lock_ring':
+        locked_acts = RING_FINGER_ACTS
+    elif joint_lock == 'lock_little':
+        locked_acts = LITTLE_FINGER_ACTS
+    elif joint_lock == 'lock_thumb':
+        locked_acts = THUMB_ACTS
+    
+    elif joint_lock == 'lock_ring_little':
+        locked_acts = RING_FINGER_ACTS + LITTLE_FINGER_ACTS
+    elif joint_lock == 'lock_index_middle':
+        locked_acts = INDEX_FINGER_ACTS + MIDDLE_FINGER_ACTS
+    elif joint_lock == 'lock_index_little':
+        locked_acts = INDEX_FINGER_ACTS + LITTLE_FINGER_ACTS
+    elif joint_lock == 'lock_index_ring':
+        locked_acts = INDEX_FINGER_ACTS + RING_FINGER_ACTS
+    elif joint_lock == 'lock_middle_ring': 
+        locked_acts = MIDDLE_FINGER_ACTS + RING_FINGER_ACTS
+    elif joint_lock == 'lock_middle_little':
+        locked_acts = MIDDLE_FINGER_ACTS + LITTLE_FINGER_ACTS
+
+    elif joint_lock == 'lock_middle_ring_little':
+        locked_acts = MIDDLE_FINGER_ACTS + RING_FINGER_ACTS + LITTLE_FINGER_ACTS
+    elif joint_lock == 'lock_index_middle_ring':
+        locked_acts = INDEX_FINGER_ACTS + MIDDLE_FINGER_ACTS + RING_FINGER_ACTS
+    elif joint_lock == 'lock_index_ring_little':
+        locked_acts = INDEX_FINGER_ACTS + RING_FINGER_ACTS + LITTLE_FINGER_ACTS
+    elif joint_lock == 'lock_index_middle_little':
+        locked_acts = INDEX_FINGER_ACTS + MIDDLE_FINGER_ACTS + LITTLE_FINGER_ACTS
+        
+    # Return only actuators that are not in the locked list
+    return [act for act in actuator_list if act not in locked_acts]
+
+# ---------------------------------------------- #
+#        A-A ANGLE CONFIGURATIONS
+# ---------------------------------------------- #
+
+# Predefined Abduction/Adduction (A-A) configurations
+# Each config specifies angles for J4 joints (knuckle abduction/adduction)
+
+AA_CONFIGURATIONS = {
+    'default': None,  # Use original values (all 0)
+    "rest": {
+        A_FFJ4: -0.05,  # Index finger adduction
+        A_MFJ4: -0.02,  # Middle finger adduction
+        A_RFJ4: -0.02,  # Ring finger adduction
+        A_LFJ4: -0.05,  # Little finger adduction
+    },
+
+    "low": {
+        A_FFJ4: -0.10,
+        A_MFJ4: -0.03,
+        A_RFJ4: -0.05,
+        A_LFJ4: -0.10,
+    },
+
+    "mid": {
+        A_FFJ4: -0.175,
+        A_MFJ4:  0.000,
+        A_RFJ4: -0.105,
+        A_LFJ4: -0.209,
+    },
+
+    "max": {
+        A_FFJ4: -0.262,
+        A_MFJ4:  0.000,
+        A_RFJ4: -0.175,
+        A_LFJ4: -0.349,
+    },
+}
+
+def get_default_joint_states_with_aa_config(aa_config='default'):
+    """
+    Get DEFAULT_JOINT_STATES with modified A-A values based on configuration.
+    
+    Args:
+        aa_config: String name of A-A configuration preset
+        
+    Returns:
+        Dictionary of actuator states with updated A-A values
+    """
+    joint_states = DEFAULT_JOINT_STATES.copy()
+    
+    if aa_config in AA_CONFIGURATIONS and AA_CONFIGURATIONS[aa_config] is not None:
+        aa_values = AA_CONFIGURATIONS[aa_config]
+        joint_states.update(aa_values)
+    
+    return joint_states
+
+# ---------------------------------------------- #
 #                   KEY MEASURES
 # ---------------------------------------------- #
 

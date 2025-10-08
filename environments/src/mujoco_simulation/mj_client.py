@@ -5,7 +5,7 @@ import time
 import environments.src.robots.mj_shadow_hand_consts as sh_consts
 import environments.src.env_constants as env_consts
 from environments.src.mj_search_space_bb_processor import get_body_aabb, get_search_space_bb, is_descendant_body
-
+from typing import Dict
 from scipy.spatial.transform import Rotation as R
 from scipy.spatial.transform import Slerp
 
@@ -15,7 +15,7 @@ class MjClient:
     def __init__(self, xml_path: str, display: bool = False):
         model = mujoco.MjModel.from_xml_path(xml_path)
         data = mujoco.MjData(model)
-        mujoco.mj_forward(model, data)  # settle derived state once
+        mujoco.mj_forward(model, data)
         
         self.model = model
         self.data = data
@@ -114,32 +114,36 @@ class MjClient:
     def reset_object_pose(self):
         self.set_6dof_pose_object(self.default_object_pose, self.default_object_orient)
             
-    def reset_robot_fingers(self):
-        for actuator_name, default_val in sh_consts.DEFAULT_JOINT_STATES.items():
+    def reset_robot_fingers(self, default_joint_states: Dict[str, float]):
+        for actuator_name, default_val in default_joint_states.items():
             aid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_ACTUATOR, actuator_name)
             
             if actuator_name in sh_consts.TENDON_TO_JOINTS:
                     joint_names = sh_consts.TENDON_TO_JOINTS[actuator_name]
-                    share = float(default_val) / len(joint_names) # split the desired tendon target evenly across its joints
+                    share = float(default_val) / len(joint_names)
                     for jname in joint_names:
                         jid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, jname)
                         qadr = self.model.jnt_qposadr[jid]
                         dadr = self.model.jnt_dofadr[jid]
                         self.data.qpos[qadr] = share
                         self.data.qvel[dadr] = 0.0
+                    # Set actuator control to maintain this position
+                    self.data.ctrl[aid] = float(default_val)
             else:
                 target_id = int(self.model.actuator_trnid[aid, 0])
                 qadr = self.model.jnt_qposadr[target_id]
                 dadr = self.model.jnt_dofadr[target_id]
                 self.data.qpos[qadr] = float(default_val)
                 self.data.qvel[dadr] = 0.0
+                # Set actuator control to maintain this position
+                self.data.ctrl[aid] = float(default_val)
 
         self.forward()
              
     def reset(self):
         self.reset_gripper_pose()
         self.reset_object_pose()
-        self.reset_robot_fingers()
+        # self.reset_robot_fingers()
             
     def get_actuators_info(self, actuator_names: list[str]):
         actuator_ids = []
@@ -207,6 +211,7 @@ class MjClient:
             self.set_6dof_pose_gripper_shake(p_interp, q_interp)
             self.step()
         
+    # Not used directly, just in the shake test
     def shake_gripper(self):
         """Test function for visualizing both translation and rotation shakes"""
         translation_amp = 0.2
