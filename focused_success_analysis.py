@@ -9,7 +9,7 @@ import pickle
 import environments.src.robots.mj_shadow_hand_consts as sh_consts
 from run import JOINT_LOCKS
 
-BASE_DIR = "ycb_chips_can_2025-10-08_18-27"
+BASE_DIR = "ycb_chips_can_2025-10-08_19-09"
 AA_CONFIGS = list(sh_consts.AA_CONFIGURATIONS.keys())
 
 def extract_configs(folder_name):

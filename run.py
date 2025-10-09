@@ -34,7 +34,7 @@ JOINT_LOCKS = [
 AA_CONFIGS = [key for key in sh_consts.AA_CONFIGURATIONS.keys()] # if key != 'default'
 
 # Experiment settings
-NBR = 5000
+NBR = 50000
 OBJ = "ycb_chips_can"
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
 LOG_PATH = f"{OBJ}_{timestamp}"
