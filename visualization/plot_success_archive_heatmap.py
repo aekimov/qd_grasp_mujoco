@@ -26,15 +26,15 @@ def arg_parser():
     return parser.parse_args()
 
 
-def generate_obj_id(env, info_shape_contact, color):
-    base_collision_shape = env.bullet_client.createCollisionShape(**info_shape_contact)
-    base_vis_shape = env.bullet_client.createVisualShape(**info_shape_contact, rgbaColor=color)
-    return env.bullet_client.createMultiBody(
-        baseMass=0,
-        baseCollisionShapeIndex=base_collision_shape,
-        baseVisualShapeIndex=base_vis_shape,
-        useMaximalCoordinates=False
-    )
+# def generate_obj_id(env, info_shape_contact, color):
+#     base_collision_shape = env.bullet_client.createCollisionShape(**info_shape_contact)
+#     base_vis_shape = env.bullet_client.createVisualShape(**info_shape_contact, rgbaColor=color)
+#     return env.bullet_client.createMultiBody(
+#         baseMass=0,
+#         baseCollisionShapeIndex=base_collision_shape,
+#         baseVisualShapeIndex=base_vis_shape,
+#         useMaximalCoordinates=False
+#     )
 
 
 def get_max_theoretical_fitness(cfg):
@@ -52,94 +52,94 @@ def get_max_theoretical_fitness(cfg):
     return n_fit_max_per_eval
 
 
-def get_arrow_tip_pose(contact_pos, end_eff_or_euler, arrow_side):
-    theta_x, theta_y, theta_z = end_eff_or_euler
+# def get_arrow_tip_pose(contact_pos, end_eff_or_euler, arrow_side):
+#     theta_x, theta_y, theta_z = end_eff_or_euler
 
-    rot_z = np.array([
-        [np.cos(theta_z), -np.sin(theta_z), 0, 0],
-        [np.sin(theta_z), np.cos(theta_z), 0, 0],
-        [0, 0, 1, 0],
-        [0, 0, 0, 1],
-    ])
-    rot_y = np.array([
-        [np.cos(theta_y), 0, np.sin(theta_y), 0],
-        [0, 1, 0, 0],
-        [-np.sin(theta_y), 0, np.cos(theta_y), 0],
-        [0, 0, 0, 1],
-    ])
-    rot_x = np.array([
-        [1, 0, 0, 0],
-        [0, np.cos(theta_x), -np.sin(theta_x), 0],
-        [0, np.sin(theta_x), np.cos(theta_x), 0],
-        [0, 0, 0, 1],
-    ])
+#     rot_z = np.array([
+#         [np.cos(theta_z), -np.sin(theta_z), 0, 0],
+#         [np.sin(theta_z), np.cos(theta_z), 0, 0],
+#         [0, 0, 1, 0],
+#         [0, 0, 0, 1],
+#     ])
+#     rot_y = np.array([
+#         [np.cos(theta_y), 0, np.sin(theta_y), 0],
+#         [0, 1, 0, 0],
+#         [-np.sin(theta_y), 0, np.cos(theta_y), 0],
+#         [0, 0, 0, 1],
+#     ])
+#     rot_x = np.array([
+#         [1, 0, 0, 0],
+#         [0, np.cos(theta_x), -np.sin(theta_x), 0],
+#         [0, np.sin(theta_x), np.cos(theta_x), 0],
+#         [0, 0, 0, 1],
+#     ])
 
-    contact_center_arrow_tip_pose = np.array([0, 0, arrow_side, 0])
-    contact_center_arrow_tip_pose_right_side = np.array([0, arrow_side / 8, arrow_side - arrow_side / 4, 0])
-    contact_center_arrow_tip_pose_left_side = np.array([0, - arrow_side / 8, arrow_side - arrow_side / 4, 0])
+#     contact_center_arrow_tip_pose = np.array([0, 0, arrow_side, 0])
+#     contact_center_arrow_tip_pose_right_side = np.array([0, arrow_side / 8, arrow_side - arrow_side / 4, 0])
+#     contact_center_arrow_tip_pose_left_side = np.array([0, - arrow_side / 8, arrow_side - arrow_side / 4, 0])
 
-    rot_mat = np.matmul(np.matmul(rot_z, rot_y), rot_x)
+#     rot_mat = np.matmul(np.matmul(rot_z, rot_y), rot_x)
 
-    arrow_tip_pose = np.matmul(rot_mat, contact_center_arrow_tip_pose)
-    arrow_tip_right_side_pose = np.matmul(rot_mat, contact_center_arrow_tip_pose_right_side)
-    arrow_tip_left_side_pose = np.matmul(rot_mat, contact_center_arrow_tip_pose_left_side)
+#     arrow_tip_pose = np.matmul(rot_mat, contact_center_arrow_tip_pose)
+#     arrow_tip_right_side_pose = np.matmul(rot_mat, contact_center_arrow_tip_pose_right_side)
+#     arrow_tip_left_side_pose = np.matmul(rot_mat, contact_center_arrow_tip_pose_left_side)
 
-    end_arrow_point = np.array(contact_pos) + arrow_tip_pose[:3]
-    end_arrow_right_side_point = np.array(contact_pos) + arrow_tip_right_side_pose[:3]
-    end_arrow_left_side_point = np.array(contact_pos) + arrow_tip_left_side_pose[:3]
+#     end_arrow_point = np.array(contact_pos) + arrow_tip_pose[:3]
+#     end_arrow_right_side_point = np.array(contact_pos) + arrow_tip_right_side_pose[:3]
+#     end_arrow_left_side_point = np.array(contact_pos) + arrow_tip_left_side_pose[:3]
 
-    return end_arrow_point, end_arrow_right_side_point, end_arrow_left_side_point
-
-
-def cvt_fit2linewidth(fit, max_fit, min_fit):
-    # fit -> [0, 1]
-    return (max_fit - min_fit) * fit * LINE_WIDTH_SCALE_FACTOR
+#     return end_arrow_point, end_arrow_right_side_point, end_arrow_left_side_point
 
 
-def draw_heat_arrow(
-        contact_pos, fit, end_eff_or_euler, min_fit, max_fit, env, init_obj_xyzw, info_shape_contact, arrow_side
-):
+# def cvt_fit2linewidth(fit, max_fit, min_fit):
+#     # fit -> [0, 1]
+#     return (max_fit - min_fit) * fit * LINE_WIDTH_SCALE_FACTOR
 
-    # Sample color based on fit
-    cmap = sns.color_palette(HEATMAP_COLOR_PALETTE, as_cmap=True)
-    rgba = cmap(fit)
-    contact_obj_color = list(rgba)
-    i_alpha = 3
-    contact_obj_color[i_alpha] = 1
 
-    # Get arrow coordinates
-    end_arrow_point, end_arrow_right_side_point, end_arrow_left_side_point = get_arrow_tip_pose(
-        contact_pos=contact_pos,
-        end_eff_or_euler=end_eff_or_euler,
-        arrow_side=arrow_side
-    )
+# def draw_heat_arrow(
+#         contact_pos, fit, end_eff_or_euler, min_fit, max_fit, env, init_obj_xyzw, info_shape_contact, arrow_side
+# ):
 
-    line_color = contact_obj_color[:3]
-    line_width = cvt_fit2linewidth(fit=fit, max_fit=max_fit, min_fit=min_fit)
+#     # Sample color based on fit
+#     cmap = sns.color_palette(HEATMAP_COLOR_PALETTE, as_cmap=True)
+#     rgba = cmap(fit)
+#     contact_obj_color = list(rgba)
+#     i_alpha = 3
+#     contact_obj_color[i_alpha] = 1
 
-    env.bullet_client.addUserDebugLine(
-        lineFromXYZ=contact_pos,
-        lineToXYZ=end_arrow_point,
-        lineColorRGB=line_color,
-        lineWidth=line_width
-    )
-    env.bullet_client.addUserDebugLine(
-        lineFromXYZ=end_arrow_right_side_point,
-        lineToXYZ=end_arrow_point,
-        lineColorRGB=line_color,
-        lineWidth=line_width
-    )
-    env.bullet_client.addUserDebugLine(
-        lineFromXYZ=end_arrow_left_side_point,
-        lineToXYZ=end_arrow_point,
-        lineColorRGB=line_color,
-        lineWidth=line_width
-    )
+#     # Get arrow coordinates
+#     end_arrow_point, end_arrow_right_side_point, end_arrow_left_side_point = get_arrow_tip_pose(
+#         contact_pos=contact_pos,
+#         end_eff_or_euler=end_eff_or_euler,
+#         arrow_side=arrow_side
+#     )
 
-    draw_success_archive_cell = False
-    if draw_success_archive_cell:
-        contact_obj_id = generate_obj_id(env=env, info_shape_contact=info_shape_contact, color=contact_obj_color)
-        env.bullet_client.resetBasePositionAndOrientation(contact_obj_id, contact_pos, init_obj_xyzw)
+#     line_color = contact_obj_color[:3]
+#     line_width = cvt_fit2linewidth(fit=fit, max_fit=max_fit, min_fit=min_fit)
+
+#     env.bullet_client.addUserDebugLine(
+#         lineFromXYZ=contact_pos,
+#         lineToXYZ=end_arrow_point,
+#         lineColorRGB=line_color,
+#         lineWidth=line_width
+#     )
+#     env.bullet_client.addUserDebugLine(
+#         lineFromXYZ=end_arrow_right_side_point,
+#         lineToXYZ=end_arrow_point,
+#         lineColorRGB=line_color,
+#         lineWidth=line_width
+#     )
+#     env.bullet_client.addUserDebugLine(
+#         lineFromXYZ=end_arrow_left_side_point,
+#         lineToXYZ=end_arrow_point,
+#         lineColorRGB=line_color,
+#         lineWidth=line_width
+#     )
+
+#     draw_success_archive_cell = False
+#     if draw_success_archive_cell:
+#         contact_obj_id = generate_obj_id(env=env, info_shape_contact=info_shape_contact, color=contact_obj_color)
+#         env.bullet_client.resetBasePositionAndOrientation(contact_obj_id, contact_pos, init_obj_xyzw)
 
 
 def get_outcome_archive_dims(run_infos):
@@ -150,94 +150,133 @@ def get_outcome_archive_dims(run_infos):
     }
 
 
-def get_outcome_archive_vis_dim(env, outcome_archive_dims):
+# def get_outcome_archive_vis_dim(env, outcome_archive_dims):
 
-    len_bin_x = outcome_archive_dims['len_bin_x']
-    len_bin_y = outcome_archive_dims['len_bin_y']
-    len_bin_z = outcome_archive_dims['len_bin_z']
+#     len_bin_x = outcome_archive_dims['len_bin_x']
+#     len_bin_y = outcome_archive_dims['len_bin_y']
+#     len_bin_z = outcome_archive_dims['len_bin_z']
 
-    # Arrow dims
-    arrow_side = len_bin_x
+#     # Arrow dims
+#     arrow_side = len_bin_x
 
-    # Contact point object
-    co_dim_x, co_dim_y, co_dim_z = len_bin_x, len_bin_y, len_bin_z
-    display_scale_factor = 4
-    info_shape_contact = {"shapeType": env.bullet_client.GEOM_BOX,
-                          "halfExtents": [
-                              co_dim_x / display_scale_factor,
-                              co_dim_y / display_scale_factor,
-                              co_dim_z / display_scale_factor
-                          ]}
+#     # Contact point object
+#     co_dim_x, co_dim_y, co_dim_z = len_bin_x, len_bin_y, len_bin_z
+#     display_scale_factor = 4
+#     info_shape_contact = {"shapeType": env.bullet_client.GEOM_BOX,
+#                           "halfExtents": [
+#                               co_dim_x / display_scale_factor,
+#                               co_dim_y / display_scale_factor,
+#                               co_dim_z / display_scale_factor
+#                           ]}
 
-    return info_shape_contact, arrow_side
+#     return info_shape_contact, arrow_side
 
 
-def display_success_archive_3d_arrows_heatmap(env, all_6dof_pose_data, outcome_archive_dims):
+# def display_success_archive_3d_arrows_heatmap(env, all_6dof_pose_data, outcome_archive_dims):
 
-    all_contact_points = [
-        all_6dof_pose_data[scs_ind_id]['6dof_pose']['xyz'] for scs_ind_id in all_6dof_pose_data
-    ]
-    all_end_eff_or_euler = [
-        env.bullet_client.getEulerFromQuaternion(all_6dof_pose_data[scs_ind_id]['6dof_pose']['quaternions'])
-        for scs_ind_id in all_6dof_pose_data
-    ]
-    fitnesses = [all_6dof_pose_data[scs_ind_id]['fitness'] for scs_ind_id in all_6dof_pose_data]
+#     all_contact_points = [
+#         all_6dof_pose_data[scs_ind_id]['6dof_pose']['xyz'] for scs_ind_id in all_6dof_pose_data
+#     ]
+#     all_end_eff_or_euler = [
+#         env.bullet_client.getEulerFromQuaternion(all_6dof_pose_data[scs_ind_id]['6dof_pose']['quaternions'])
+#         for scs_ind_id in all_6dof_pose_data
+#     ]
+#     fitnesses = [all_6dof_pose_data[scs_ind_id]['fitness'] for scs_ind_id in all_6dof_pose_data]
 
-    info_shape_contact, arrow_side = get_outcome_archive_vis_dim(env, outcome_archive_dims)
+#     info_shape_contact, arrow_side = get_outcome_archive_vis_dim(env, outcome_archive_dims)
 
-    init_obj_pos, init_obj_xyzw = env.bullet_client.getBasePositionAndOrientation(env.obj_id)
-    min_fit, max_fit = np.quantile(fitnesses, q=0.2), np.quantile(fitnesses, q=0.8)
+#     init_obj_pos, init_obj_xyzw = env.bullet_client.getBasePositionAndOrientation(env.obj_id)
+#     min_fit, max_fit = np.quantile(fitnesses, q=0.2), np.quantile(fitnesses, q=0.8)
 
-    env.bullet_client.configureDebugVisualizer(env.bullet_client.COV_ENABLE_GUI, 0)
-    env.bullet_client.resetDebugVisualizerCamera(0.5, 30, -30, [0, 0, 0])
+#     env.bullet_client.configureDebugVisualizer(env.bullet_client.COV_ENABLE_GUI, 0)
+#     env.bullet_client.resetDebugVisualizerCamera(0.5, 30, -30, [0, 0, 0])
 
-    for contact_pos, fit, end_eff_or_euler in zip(all_contact_points, fitnesses, all_end_eff_or_euler):
+#     for contact_pos, fit, end_eff_or_euler in zip(all_contact_points, fitnesses, all_end_eff_or_euler):
 
-        draw_heat_arrow(
-            contact_pos=contact_pos,
-            fit=fit,
-            end_eff_or_euler=end_eff_or_euler,
-            min_fit=min_fit,
-            max_fit=max_fit,
-            env=env,
-            init_obj_xyzw=init_obj_xyzw,
-            info_shape_contact=info_shape_contact,
-            arrow_side=arrow_side
-        )
+#         draw_heat_arrow(
+#             contact_pos=contact_pos,
+#             fit=fit,
+#             end_eff_or_euler=end_eff_or_euler,
+#             min_fit=min_fit,
+#             max_fit=max_fit,
+#             env=env,
+#             init_obj_xyzw=init_obj_xyzw,
+#             info_shape_contact=info_shape_contact,
+#             arrow_side=arrow_side
+#         )
 
-    input(f"{len(all_contact_points)} individuals successfully plotted. Press enter to close...")
-    env.close()
+#     input(f"{len(all_contact_points)} individuals successfully plotted. Press enter to close...")
+#     env.close()
 
+
+# def display_success_archive_voxels_heatmap(env, all_6dof_pose_data, outcome_archive_dims, cfg):
+
+#     all_contact_points = [
+#         all_6dof_pose_data[scs_ind_id]['6dof_pose']['xyz'] for scs_ind_id in all_6dof_pose_data
+#     ]
+#     all_end_eff_or_euler = [
+#         env.bullet_client.getEulerFromQuaternion(all_6dof_pose_data[scs_ind_id]['6dof_pose']['quaternions'])
+#         for scs_ind_id in all_6dof_pose_data
+#     ]
+#     fitnesses = [all_6dof_pose_data[scs_ind_id]['fitness'] for scs_ind_id in all_6dof_pose_data]
+
+#     max_theoretical_fitess = get_max_theoretical_fitness(cfg)
+#     info_shape_grasp_pose = get_info_shape_grasp_pose(env=env, outcome_archive_dims=outcome_archive_dims)
+
+#     env.bullet_client.configureDebugVisualizer(env.bullet_client.COV_ENABLE_GUI, 0)
+#     env.bullet_client.resetDebugVisualizerCamera(0.5, 30, -30, [0, 0, 0])
+
+#     for contact_pos, fit, end_eff_or_euler in zip(all_contact_points, fitnesses, all_end_eff_or_euler):
+#         draw_grasp_xyz_pose(
+#             grasp_xyz_pose=contact_pos,
+#             env=env,
+#             info_shape_grasp_pose=info_shape_grasp_pose,
+#             fitness=fit,
+#             max_theoretical_fitess=max_theoretical_fitess
+#         )
+
+#     input(f"{len(all_contact_points)} individuals successfully plotted. Press enter to close...")
+#     env.close()
 
 def display_success_archive_voxels_heatmap(env, all_6dof_pose_data, outcome_archive_dims, cfg):
-
     all_contact_points = [
         all_6dof_pose_data[scs_ind_id]['6dof_pose']['xyz'] for scs_ind_id in all_6dof_pose_data
-    ]
-    all_end_eff_or_euler = [
-        env.bullet_client.getEulerFromQuaternion(all_6dof_pose_data[scs_ind_id]['6dof_pose']['quaternions'])
-        for scs_ind_id in all_6dof_pose_data
     ]
     fitnesses = [all_6dof_pose_data[scs_ind_id]['fitness'] for scs_ind_id in all_6dof_pose_data]
 
     max_theoretical_fitess = get_max_theoretical_fitness(cfg)
     info_shape_grasp_pose = get_info_shape_grasp_pose(env=env, outcome_archive_dims=outcome_archive_dims)
 
-    env.bullet_client.configureDebugVisualizer(env.bullet_client.COV_ENABLE_GUI, 0)
-    env.bullet_client.resetDebugVisualizerCamera(0.5, 30, -30, [0, 0, 0])
+    mj_client = env.mj_client 
+    
+    print(f"Displaying {len(all_contact_points)} individuals. Close viewer to exit...")
+    
+    try:
+        while mj_client.viewer.is_running():
+            mj_client.step()
+            
+            # Clear previous frame's geometry
+            mj_client.debug_clear()
+            
+            mj_client.draw_search_space_aabb(robot_name="hand_root", object_name="can")
+            mj_client.draw_aabb(robot_name="hand_root", object_name="can")
 
-    for contact_pos, fit, end_eff_or_euler in zip(all_contact_points, fitnesses, all_end_eff_or_euler):
-        draw_grasp_xyz_pose(
-            grasp_xyz_pose=contact_pos,
-            env=env,
-            info_shape_grasp_pose=info_shape_grasp_pose,
-            fitness=fit,
-            max_theoretical_fitess=max_theoretical_fitess
-        )
-
-    input(f"{len(all_contact_points)} individuals successfully plotted. Press enter to close...")
+            # Draw all voxels
+            for contact_pos, fit in zip(all_contact_points, fitnesses):
+                draw_grasp_xyz_pose(
+                    grasp_xyz_pose=contact_pos,
+                    mj_client=mj_client,
+                    info_shape_grasp_pose=info_shape_grasp_pose,
+                    fitness=fit,
+                    max_theoretical_fitess=max_theoretical_fitess
+                )
+            
+            # Sync viewer
+            mj_client.debug_sync()
+    except KeyboardInterrupt:
+        print("\nVisualization stopped by user")
+    
     env.close()
-
 
 def get_all_6dof_pose_data(folder):
     individuals = load_all_inds(folder)
@@ -266,7 +305,7 @@ def get_info_shape_grasp_pose(env, outcome_archive_dims):
 
     display_scale_factor = GRASP_XYZ_POSE_BIN_SIZE_FACTOR
     info_shape_grasp_pose = {
-        "shapeType": env.bullet_client.GEOM_BOX,
+        # "shapeType": env.bullet_client.GEOM_BOX,
         "halfExtents": [
             co_dim_x * display_scale_factor,
             co_dim_y * display_scale_factor,
@@ -276,27 +315,49 @@ def get_info_shape_grasp_pose(env, outcome_archive_dims):
     return info_shape_grasp_pose
 
 
+# def draw_grasp_xyz_pose(
+#         grasp_xyz_pose, env, info_shape_grasp_pose, fitness, max_theoretical_fitess
+# ):
+#     normalized_fitness = fitness / max_theoretical_fitess
+#     cmap = sns.color_palette(HEATMAP_COLOR_PALETTE, as_cmap=True)
+#     rgba = cmap(normalized_fitness)  # [1, 1, 1, 1] #[162/255, 25/255, 255/255] #cmap(0.5)
+
+#     relative_opacity_flg = False
+#     if relative_opacity_flg:
+#         non_null_opacity_offset = 0.01  # fit=0 => slightly visible
+#         normalized_opacity = max(min(normalized_fitness, 1.0), non_null_opacity_offset)
+#         i_opacity = 3
+#         rgba = list(rgba)
+#         rgba[i_opacity] = normalized_opacity
+
+
+#     grasp_xyz_obj_color = list(rgba)
+#     grasp_xyz_obj_id = generate_obj_id(env=env, info_shape_contact=info_shape_grasp_pose, color=grasp_xyz_obj_color)
+#     env.bullet_client.resetBasePositionAndOrientation(grasp_xyz_obj_id, grasp_xyz_pose, DUMMY_QUARTERNION_ORIENT)
+
 def draw_grasp_xyz_pose(
-        grasp_xyz_pose, env, info_shape_grasp_pose, fitness, max_theoretical_fitess
+        grasp_xyz_pose, mj_client, info_shape_grasp_pose, fitness, max_theoretical_fitess
 ):
     normalized_fitness = fitness / max_theoretical_fitess
     cmap = sns.color_palette(HEATMAP_COLOR_PALETTE, as_cmap=True)
-    rgba = cmap(normalized_fitness)  # [1, 1, 1, 1] #[162/255, 25/255, 255/255] #cmap(0.5)
+    rgba = cmap(normalized_fitness)
 
     relative_opacity_flg = False
     if relative_opacity_flg:
-        non_null_opacity_offset = 0.01  # fit=0 => slightly visible
+        non_null_opacity_offset = 0.01
         normalized_opacity = max(min(normalized_fitness, 1.0), non_null_opacity_offset)
         i_opacity = 3
         rgba = list(rgba)
         rgba[i_opacity] = normalized_opacity
 
-
     grasp_xyz_obj_color = list(rgba)
-    grasp_xyz_obj_id = generate_obj_id(env=env, info_shape_contact=info_shape_grasp_pose, color=grasp_xyz_obj_color)
-    env.bullet_client.resetBasePositionAndOrientation(grasp_xyz_obj_id, grasp_xyz_pose, DUMMY_QUARTERNION_ORIENT)
-
-
+    
+    mj_client.draw_box(
+        pos=grasp_xyz_pose,
+        half_extents=info_shape_grasp_pose["halfExtents"],
+        rgba=grasp_xyz_obj_color
+    )
+    
 def replay_trajs(run_folder_path, arrow_mode):
 
     # Load run folder
@@ -307,7 +368,7 @@ def replay_trajs(run_folder_path, arrow_mode):
 
     # Init grasp gym env
     env = init_env(cfg, display=True)
-    env.bullet_client.removeBody(env.robot_id)
+    # env.bullet_client.removeBody(env.robot_id)
 
     individuals = load_all_inds(folder)
     outcome_archive_dims = get_outcome_archive_dims(run_infos)
@@ -315,19 +376,19 @@ def replay_trajs(run_folder_path, arrow_mode):
     # Get the 6dof data to replay
     all_6dof_pose_data = get_all_6dof_pose_data(folder=folder)
 
-    if arrow_mode:
-        display_success_archive_3d_arrows_heatmap(
-            env=env,
-            all_6dof_pose_data=all_6dof_pose_data,
-            outcome_archive_dims=outcome_archive_dims
-        )
-    else:
-        display_success_archive_voxels_heatmap(
-            env=env,
-            all_6dof_pose_data=all_6dof_pose_data,
-            outcome_archive_dims=outcome_archive_dims,
-            cfg=cfg,
-        )
+    # if arrow_mode:
+    #     display_success_archive_3d_arrows_heatmap(
+    #         env=env,
+    #         all_6dof_pose_data=all_6dof_pose_data,
+    #         outcome_archive_dims=outcome_archive_dims
+    #     )
+    # else:
+    display_success_archive_voxels_heatmap(
+        env=env,
+        all_6dof_pose_data=all_6dof_pose_data,
+        outcome_archive_dims=outcome_archive_dims,
+        cfg=cfg,
+    )
 
     print('Ending.')
 

@@ -450,3 +450,45 @@ class MjClient:
         )
         g.rgba[:] = rgba
         scn.ngeom += 1
+        
+    def draw_box(self, pos, half_extents, rgba=(1, 0, 0, 1)):
+        """Draw a box at the specified position with given half extents and color."""
+        scn = self.viewer.user_scn
+        g = scn.geoms[scn.ngeom]
+        mujoco.mjv_initGeom(
+            g,
+            type=mujoco.mjtGeom.mjGEOM_BOX,
+            size=half_extents,
+            pos=np.asarray(pos, float),
+            mat=np.eye(3).flatten(),
+            rgba=rgba
+        )
+        scn.ngeom += 1
+        
+        
+    def draw_aabb(self, robot_name="hand_root", object_name="can"):
+        """Draw AABB boxes for robot (red) and object (blue) - single frame, no loop"""
+        robot_aabb_min, robot_aabb_max = get_body_aabb(self.model, self.data, robot_name)
+        object_aabb_min, object_aabb_max = get_body_aabb(self.model, self.data, object_name)
+        
+        robot_center = (robot_aabb_min + robot_aabb_max) / 2
+        robot_half_sizes = (robot_aabb_max - robot_aabb_min) / 2
+        
+        object_center = (object_aabb_min + object_aabb_max) / 2
+        object_half_sizes = (object_aabb_max - object_aabb_min) / 2
+        
+        # Draw robot AABB (red, transparent)
+        self.draw_box(pos=robot_center, half_extents=robot_half_sizes, rgba=(1, 0, 0, 0.3))
+        
+        # Draw object AABB (blue, transparent)
+        self.draw_box(pos=object_center, half_extents=object_half_sizes, rgba=(0, 0, 1, 0.3))
+
+    def draw_search_space_aabb(self, robot_name="hand_root", object_name="can"):
+        """Draw search space AABB (green) - single frame, no loop"""
+        ss_bb = get_search_space_bb(self.model, self.data, robot_name, object_name)
+        
+        center = (np.array(ss_bb.aabb_min) + np.array(ss_bb.aabb_max)) / 2
+        half_sizes = (np.array(ss_bb.aabb_max) - np.array(ss_bb.aabb_min)) / 2
+        
+        # Draw search space AABB (green, transparent)
+        self.draw_box(pos=center, half_extents=half_sizes, rgba=(0, 1, 0, 0.3))
