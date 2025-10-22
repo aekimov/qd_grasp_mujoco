@@ -92,8 +92,9 @@ def replay_all_6dof_poses(env, all_6dof_pose_data, display_flags):
 		ind_ids_sorted_descent_order = np.argsort(all_fits)[::-1]
 		all_all_6dof_pose_ids = ind_ids_sorted_descent_order
 
+	n_robust = 0
+	n_total = 0
 	for scs_ind_id in all_all_6dof_pose_ids:
-		print('scs_ind_id=', scs_ind_id)
 		gripper_6dof_pose = all_6dof_pose_data[scs_ind_id]['6dof_pose']
 		is_robust_grasp = get_info_from_key(
 			infos=all_6dof_pose_data[scs_ind_id]['infos'],
@@ -101,11 +102,17 @@ def replay_all_6dof_poses(env, all_6dof_pose_data, display_flags):
 			key='is_robust_grasp'
 		)
 		fitness = all_6dof_pose_data[scs_ind_id]['fitness']
-		synergy_label = all_6dof_pose_data[scs_ind_id]['synergy_label']
-		init_joint_state_genes = all_6dof_pose_data[scs_ind_id]['init_joint_state_genes']
-
+		n_total += 1
+		
+		if is_robust_grasp:
+			n_robust += 1
+		
 		if not is_robust_grasp and display_flags['only_robust_inds']:
 			continue
+		
+		print(f'scs_ind_id={scs_ind_id} | fitness={fitness} | is_robust={is_robust_grasp}')
+		synergy_label = all_6dof_pose_data[scs_ind_id]['synergy_label']
+		init_joint_state_genes = all_6dof_pose_data[scs_ind_id]['init_joint_state_genes']
 
 		print(f'Displaying successful grasp n°{scs_ind_id} | is_robust_grasp={is_robust_grasp} fitness={fitness}')
 
@@ -126,6 +133,7 @@ def replay_all_6dof_poses(env, all_6dof_pose_data, display_flags):
 			are_all_shakes_successful = rg_db.apply_all_gripper_shaking_debug(env)
 			print(f'(id={scs_ind_id}) are_all_shakes_successful={are_all_shakes_successful}')
 
+	print(f'\nSummary: {n_robust}/{n_total} grasps in archive are robust (fitness=2.0)')
 	print(f'Display over.')
 
 

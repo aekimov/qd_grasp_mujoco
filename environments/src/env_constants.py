@@ -55,6 +55,12 @@ SETTLING_PARAMETERS = {
     'after_all_shakes': 2000,       # Steps to wait after all shaking completes (0.4s @ 500Hz)
 }
 
+CONTACT_FORCE_PARAMETERS = {
+    'min_contact_force': 0.1,
+    'min_num_contacts': 2,
+    'check_force': True,
+}
+
 
 
 

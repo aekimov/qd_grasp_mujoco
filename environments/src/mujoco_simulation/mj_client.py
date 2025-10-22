@@ -244,7 +244,24 @@ class MjClient:
         
     def is_there_contacts(self) -> bool:
         contacts = self.get_hand_object_contacts()
-        return len(contacts) >= 2
+        
+        min_contacts = env_consts.CONTACT_FORCE_PARAMETERS['min_num_contacts']
+        if len(contacts) < min_contacts:
+            return False
+        
+        if not env_consts.CONTACT_FORCE_PARAMETERS['check_force']:
+            return True
+        
+        min_force = env_consts.CONTACT_FORCE_PARAMETERS['min_contact_force']
+        valid_contacts = 0
+        
+        for contact in contacts:
+            force_magnitude = np.linalg.norm(contact['force'])
+            if force_magnitude >= min_force:
+                valid_contacts += 1
+        
+        return valid_contacts >= min_contacts
+    
     
     # def are_bodies_in_contact(self, body_names: list[str], target_body_name: str) -> bool:
     #     m, d = self.model, self.data
