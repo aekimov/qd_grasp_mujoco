@@ -232,7 +232,7 @@ class MjRobotGrasping:
             forces = [np.linalg.norm(c['force']) for c in contacts]
             valid_forces = [f for f in forces if f >= env_consts.CONTACT_FORCE_PARAMETERS['min_contact_force']]
             gripper_pos = self._mj_client._get_6dof_pose_gripper()[0]
-            print(f"Robust grasp @ [{gripper_pos[0]:.3f}, {gripper_pos[1]:.3f}, {gripper_pos[2]:.3f}] | Contacts: {len(contacts)} | Valid: {len(valid_forces)} | Forces: {[f'{f:.3f}' for f in forces]}")
+            # print(f"Robust grasp @ [{gripper_pos[0]:.3f}, {gripper_pos[1]:.3f}, {gripper_pos[2]:.3f}] | Contacts: {len(contacts)} | Valid: {len(valid_forces)} | Forces: {[f'{f:.3f}' for f in forces]}")
 
         gripper_6dof_output_data['is_success'] = True
         gripper_6dof_output_data['is_robust_grasp'] = are_all_shakes_successful

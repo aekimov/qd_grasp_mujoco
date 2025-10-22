@@ -14,7 +14,7 @@ JOINT_LOCKS = [
     "lock_middle",
     "lock_ring",
     "lock_little",
-    "lock_thumb",
+    # "lock_thumb",
 
     # Two finger locking
     "lock_ring_little",
@@ -127,12 +127,28 @@ def save_plot(results, path):
 def main():
     results = []
 
-    # Run all combinations of joint_lock × AA config (if AA_CONFIGS is not empty)
+    total_runs = len(JOINT_LOCKS) * (len(AA_CONFIGS) if AA_CONFIGS else 1)
+    current_run = 0
+
+    print(f"\n{'='*60}")
+    print(f"Starting {total_runs} experiments:")
+    print(f"  - {len(JOINT_LOCKS)} joint lock configurations")
+    print(f"  - {len(AA_CONFIGS) if AA_CONFIGS else 1} AA configurations")
+    print(f"{'='*60}\n")
+
     for joint_lock in JOINT_LOCKS:
         if AA_CONFIGS:
             for aa_config in AA_CONFIGS:
+                current_run += 1
+                print(f"\n{'='*60}")
+                print(f"Progress: {current_run}/{total_runs}")
+                print(f"{'='*60}")
                 run_test(joint_lock, aa_config)
         else:
+            current_run += 1
+            print(f"\n{'='*60}")
+            print(f"Progress: {current_run}/{total_runs}")
+            print(f"{'='*60}")
             run_test(joint_lock)
 
     # Collect all folders matching naming pattern
