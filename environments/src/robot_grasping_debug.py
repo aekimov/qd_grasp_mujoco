@@ -20,6 +20,6 @@ def apply_all_gripper_shaking_debug(robot_grasp_env):
         if at_least_one_failure:
             are_all_shakes_successful = False
 
-        return are_all_shakes_successful
+    return are_all_shakes_successful
 
 

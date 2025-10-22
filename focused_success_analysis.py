@@ -9,6 +9,10 @@ import pickle
 import environments.src.robots.mj_shadow_hand_consts as sh_consts
 from run import JOINT_LOCKS
 
+FOLDER_NAMES = ['ycb_chips_can_2025-10-08_19-09', 'ycb_chips_can_2025-10-11_11-23', 
+                'ycb_chips_can_2025-10-12_07-57', 'ycb_chips_can_2025-10-12_18-05',
+                'ycb_chips_can_2025-10-13_07-50']
+
 BASE_DIR = 'ycb_chips_can_2025-10-13_07-50'
 AA_CONFIGS = list(sh_consts.AA_CONFIGURATIONS.keys())
 
@@ -170,8 +174,8 @@ def create_success_focused_heatmaps(df):
     
     # Success-focused metrics only (removed spatial coverage as requested)
     metrics_to_plot = [
-        ('success_rate', 'Success Rate (% of ALL Evaluations)', 'YlGnBu'),
-        ('robust_success_rate', 'Robust Success Rate (% of ALL Evaluations)', 'Greens'),
+        # ('success_rate', 'Success Rate (% of ALL Evaluations)', 'YlGnBu'),
+        # ('robust_success_rate', 'Robust Success Rate (% of ALL Evaluations)', 'Greens'),
         ('total_successful_grasps', 'Total Successful Grasps (Archive Count)', 'Blues'),
         ('total_robust_grasps', 'Total Robust Grasps (Archive Count)', 'Reds'),
         ('qd_score', 'QD-Score (Sum of Fitness)', 'viridis'),
@@ -265,9 +269,9 @@ def main():
         return
     
     # Save detailed results
-    # csv_path = os.path.join(BASE_DIR, "success_focused_analysis.csv")
-    # df.to_csv(csv_path, index=False)
-    # print(f"[✔] Saved detailed CSV: {csv_path}")
+    csv_path = os.path.join(BASE_DIR, "success_focused_analysis.csv")
+    df.to_csv(csv_path, index=False)
+    print(f"[✔] Saved detailed CSV: {csv_path}")
     
     # Create success-focused heatmaps
     create_success_focused_heatmaps(df)

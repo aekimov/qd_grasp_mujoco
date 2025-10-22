@@ -24,7 +24,7 @@ class MjClient:
         self.default_gripper_pose, self.default_gripper_orient = self._get_6dof_pose_gripper()
         
         self.viewer = None
-        
+
         if display:
             self.open_viewer()
     
