@@ -33,6 +33,15 @@ class MjClient:
         if self.viewer is None:
             self.viewer = mujoco.viewer.launch_passive(self.model, self.data)
             # self.viewer.cam.lookat[2] += 0.5
+            
+            # Enable visualization of coordinate frames
+            self.viewer.opt.frame = mujoco.mjtFrame.mjFRAME_WORLD  # Show body frames
+            # Alternative options:
+            # mujoco.mjtFrame.mjFRAME_NONE - no frames
+            # mujoco.mjtFrame.mjFRAME_BODY - body frames (recommended)
+            # mujoco.mjtFrame.mjFRAME_GEOM - geometry frames
+            # mujoco.mjtFrame.mjFRAME_SITE - site frames
+            # mujoco.mjtFrame.mjFRAME_WORLD - world frame only
 
 
     def close(self):
@@ -200,7 +209,9 @@ class MjClient:
         q_scipy = q_current[[1, 2, 3, 0]]
         
         rot_current = R.from_quat(q_scipy)
-        rot_goal = R.from_euler(axis, target_angle, degrees=False) * rot_current
+        # Apply rotation in LOCAL frame (hand-relative) instead of global frame
+        # This ensures consistent shake direction regardless of hand's world orientation
+        rot_goal = rot_current * R.from_euler(axis, target_angle, degrees=False)
         slerp = Slerp([0, 1], R.from_quat([q_scipy, rot_goal.as_quat()]))
         pivot_point = p_current - rot_current.apply(hand_offset) + hand_offset
         
