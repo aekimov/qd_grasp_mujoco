@@ -47,6 +47,14 @@ SHAKING_PARAMETERS = {
     'perturbated_joint_ids': [2, 3]
 }
 
+# Physics settling parameters
+# Add stabilization time after motions to let physics settle
+SETTLING_PARAMETERS = {
+    'after_gripper_close': 100,    # Steps to wait after gripper closes (0.4s @ 500Hz)
+    'between_shake_axes': 50,     # Steps to wait between different shake axes, e.g. between translational and rotational (0.3s @ 500Hz)
+    'after_all_shakes': 2000,       # Steps to wait after all shaking completes (0.4s @ 500Hz)
+}
+
 
 
 

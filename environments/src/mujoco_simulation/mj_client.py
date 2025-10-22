@@ -89,7 +89,7 @@ class MjClient:
         self.data.mocap_pos[mid] = pos_xyz
         self.data.mocap_quat[mid] = quat_wxyz
         
-        self.forward()
+        # self.forward()
     
     def set_6dof_pose_object(self, pos_xyz, quat_wxyz):
         jid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, "can_free")
@@ -233,7 +233,7 @@ class MjClient:
         
     def is_there_contacts(self) -> bool:
         contacts = self.get_hand_object_contacts()
-        return len(contacts) != 0
+        return len(contacts) >= 2
     
     # def are_bodies_in_contact(self, body_names: list[str], target_body_name: str) -> bool:
     #     m, d = self.model, self.data

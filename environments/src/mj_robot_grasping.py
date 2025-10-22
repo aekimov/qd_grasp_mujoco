@@ -192,6 +192,11 @@ class MjRobotGrasping:
 
             self._mj_client.step()
 
+        # Physics settling: wait for contacts and forces to stabilize
+        settling_steps = env_consts.SETTLING_PARAMETERS['after_gripper_close']
+        for _ in range(settling_steps):
+            self._mj_client.step()
+
         is_obj_touched = self.sim_engine.is_grasping_candidate(mj_client=self._mj_client)
 
         return is_obj_touched
@@ -204,7 +209,7 @@ class MjRobotGrasping:
         assert gripper_6dof_output_data['is_obj_touched']
 
         are_all_shakes_successful = True
-        for i_grip_joint in env_consts.SHAKING_PARAMETERS['perturbated_joint_ids']:
+        for idx, i_grip_joint in enumerate(env_consts.SHAKING_PARAMETERS['perturbated_joint_ids']):
             gripper_joint_infos = self.gripper_6dof_infos[i_grip_joint]
             is_being_grasped, n_shake_success = self.apply_gripper_shaking(
                 joint_index=i_grip_joint,
@@ -215,6 +220,17 @@ class MjRobotGrasping:
             if at_least_one_failure:
                 are_all_shakes_successful = False
             gripper_6dof_output_data['6dof_data'][i_grip_joint]['n_shake_success'] = n_shake_success
+            
+            # Add settling delay between different shake axes (but not after the last one)
+            if idx < len(env_consts.SHAKING_PARAMETERS['perturbated_joint_ids']) - 1:
+                settling_steps = env_consts.SETTLING_PARAMETERS['between_shake_axes']
+                for _ in range(settling_steps):
+                    self._mj_client.step()
+
+        # Final settling delay after all shaking completes
+        # settling_steps = env_consts.SETTLING_PARAMETERS['after_all_shakes']
+        # for _ in range(settling_steps):
+        #     self._mj_client.step()
 
         gripper_6dof_output_data['is_success'] = True
         gripper_6dof_output_data['is_robust_grasp'] = are_all_shakes_successful

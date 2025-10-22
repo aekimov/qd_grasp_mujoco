@@ -39,7 +39,7 @@
 		<body name="can" pos="0 0 0">
 			<freejoint name="can_free"/>
 			<!-- makes the can a free-floating dynamic body -->
-			<geom type="cylinder" size="0.03 0.13" mass="0.20" friction="1 0.01 0.001" rgba="0.8 0.7 0.5 1"/>
+			<geom type="cylinder" size="0.03 0.13" mass="0.20" friction="1 0.1 0.01" rgba="0.8 0.7 0.5 1"/>
 		</body>
 	</worldbody>
 
