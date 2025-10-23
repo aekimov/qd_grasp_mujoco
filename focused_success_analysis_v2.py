@@ -9,9 +9,7 @@ import pickle
 import environments.src.robots.mj_shadow_hand_consts as sh_consts
 from run import JOINT_LOCKS
 
-FOLDER_NAMES = ['ycb_chips_can_2025-10-08_19-09', 'ycb_chips_can_2025-10-11_11-23', 
-                'ycb_chips_can_2025-10-12_07-57', 'ycb_chips_can_2025-10-12_18-05',
-                'ycb_chips_can_2025-10-13_07-50']
+FOLDER_NAMES = ['ycb_chips_can_2025-10-22_21-44']
 
 AA_CONFIGS = list(sh_consts.AA_CONFIGURATIONS.keys())
 
