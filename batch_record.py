@@ -80,8 +80,8 @@ def batch_record(base_dir, max_record=3):
 
 if __name__ == "__main__":
     # Default settings
-    base_dir = "ycb_chips_can_2025-10-13_07-50"
-    max_record = 3
+    base_dir = "ycb_chips_can_2025-10-22_21-44"
+    max_record = 5
     
     # Parse command line arguments if provided
     if len(sys.argv) > 1:

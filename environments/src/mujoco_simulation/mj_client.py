@@ -9,7 +9,7 @@ from typing import Dict
 from scipy.spatial.transform import Rotation as R
 from scipy.spatial.transform import Slerp
 
-TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC = 0.02 / 5
+TIME_SLEEP_SMOOTH_DISPLAY_IN_SEC = 0.02 / 6
 
 class MjClient:
     def __init__(self, xml_path: str, display: bool = False):
