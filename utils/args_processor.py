@@ -3,7 +3,7 @@ import argparse
 from functools import partial
 from pathlib import Path
 
-from utils.common_tools import arg_clean_str
+from utils.common_tools import arg_clean_str, wrapped_partial
 
 from algorithms.evaluate import evaluate_individual_on_worker
 
@@ -252,7 +252,7 @@ def get_qd_algo_args(cfg, dump_folder_name):
 
     nb_offsprings_to_generate = int(pop_size * qd_cfg.OFFSPRING_NB_COEFF)
 
-    eval_func = partial(
+    eval_func = wrapped_partial(
         evaluate_individual_on_worker,
         eval_kwargs=cfg['evaluate']['kwargs']
     )
