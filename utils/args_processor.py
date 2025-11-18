@@ -5,7 +5,7 @@ from pathlib import Path
 
 from utils.common_tools import arg_clean_str, wrapped_partial
 
-from algorithms.evaluate import evaluate_grasp_ind_routine
+from algorithms.evaluate import make_evaluation_function
 
 import environments.src.env_constants as env_consts
 import configs.qd_config as qd_cfg
@@ -217,7 +217,7 @@ def init_outcome_archive_kwargs(ns_raw_args):
     return outcome_archive_kwargs
 
 
-def get_qd_algo_args(cfg, env, dump_folder_name):
+def get_qd_algo_args(cfg, dump_folder_name):
 
     qd_method = cfg['algorithm']
 
@@ -252,9 +252,9 @@ def get_qd_algo_args(cfg, env, dump_folder_name):
 
     nb_offsprings_to_generate = int(pop_size * qd_cfg.OFFSPRING_NB_COEFF)
 
-    eval_func = wrapped_partial(
-        evaluate_grasp_ind_routine,
-        env=env,
+    eval_func = make_evaluation_function(
+        env_class=cfg['env']['class'],
+        env_kwargs=cfg['env']['kwargs'],
         eval_kwargs=cfg['evaluate']['kwargs']
     )
 

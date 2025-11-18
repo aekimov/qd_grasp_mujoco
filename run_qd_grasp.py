@@ -43,12 +43,11 @@ def init_grasping_env(env_class, env_kwargs):
     return env
 
 
-def get_global_config(input_args, env):
-
-    # stabilized_obj_pose, _ = env.bullet_client.getBasePositionAndOrientation(env.obj_id)
-    stabilized_obj_pose = env.mj_client.default_object_pose
-
-    search_space_bounding_box = env.search_space_bb
+def get_global_config(input_args, env_config):
+    """
+    Build global config from input args and extracted env config.
+    No live env object needed!
+    """
     n_domain_randomization_perturbations = eval_cfg.DOMAIN_RANDOMIZATION_N_NOISY_TRIALS \
         if input_args['eval_kwargs']['domain_randomization_fitness'] else None
     shaking_params = env_consts.SHAKING_PARAMETERS
@@ -74,11 +73,12 @@ def get_global_config(input_args, env):
 
         'env': {
             'kwargs': input_args['env_kwargs'],
+            'class': input_args['env_class'],  # Add class for worker creation
         },
 
         'evaluate': {
             'kwargs': input_args['eval_kwargs'],
-            'search_space_bb': search_space_bounding_box,
+            'search_space_bb': env_config['search_space_bb'],  # From extracted config
             'n_domain_randomization_perturbations': n_domain_randomization_perturbations,
             'shaking_params': shaking_params,
         },
@@ -91,7 +91,7 @@ def get_global_config(input_args, env):
 
         'object': {
             'name': input_args['object'],
-            'stabilized_obj_pose': stabilized_obj_pose,
+            'stabilized_obj_pose': env_config['stabilized_obj_pose'],  # From extracted config
         },
 
         'output': {
@@ -102,43 +102,117 @@ def get_global_config(input_args, env):
         'parallelize': input_args['parallelize'],
         'search_representation': input_args['search_representation'],
         'debug': input_args['debug'],
-
     }
 
     return global_config
 
 def run_qd_routine(**qd_algo_args):
-
+    """Run QD algorithm with optional parallelization."""
+    
     if qd_algo_args['parallelize']:
-        with concurrent.futures.ProcessPoolExecutor() as executor:
+        import os
+        n_workers = os.cpu_count() #- 1  # Leave one core for main process
+        
+        print(f"Running with {n_workers} parallel workers")
+        
+        with concurrent.futures.ProcessPoolExecutor(max_workers=n_workers) as executor:
             qd_algo_args['multiproc_pool'] = executor
             archive_success_len = evolutionary_process.run_qd(**qd_algo_args)
     else:
+        print("Running in serial mode")
         archive_success_len = evolutionary_process.run_qd(**qd_algo_args)
-
+    
     return archive_success_len
 
+# def run_qd_routine(**qd_algo_args):
+
+#     if qd_algo_args['parallelize']:
+#         with concurrent.futures.ProcessPoolExecutor() as executor:
+#             qd_algo_args['multiproc_pool'] = executor
+#             archive_success_len = evolutionary_process.run_qd(**qd_algo_args)
+#     else:
+#         archive_success_len = evolutionary_process.run_qd(**qd_algo_args)
+
+#     return archive_success_len
+
+def extract_env_config(env_class, env_kwargs):
+    """
+    Create env temporarily just to extract configuration, then destroy it.
+    This happens once in the main process.
+    
+    Returns:
+        dict: Static configuration that can be pickled
+    """
+    env = env_class(**env_kwargs)
+    
+    config = {
+        'stabilized_obj_pose': env.mj_client.default_object_pose,
+        'search_space_bb': env.search_space_bb,
+    }
+    
+    # Explicitly clean up
+    if hasattr(env, 'close'):
+        env.close()
+    del env
+    
+    return config
 
 def main():
-    """QD-Grasp entry point."""
-
-    # Initialize arguments
+    """QD-Grasp entry point - clean and simple!"""
+    
+    # Get arguments
     input_args = get_input_arguments()
-    env = init_grasping_env(env_class=input_args['env_class'], env_kwargs=input_args['env_kwargs'])
-    global_config = get_global_config(input_args=input_args, env=env)
-
+    
+    # Extract static configuration from a temporary env
+    env_config = extract_env_config(
+        env_class=input_args['env_class'],
+        env_kwargs=input_args['env_kwargs']
+    )
+    
+    # Build global config (no live env needed!)
+    global_config = get_global_config(
+        input_args=input_args,
+        env_config=env_config
+    )
+    
+    # Create output folder
     dump_folder_name = init_run_dump_folder(global_config=global_config)
-
-    qd_algo_args = get_qd_algo_args(cfg=global_config, env=env, dump_folder_name=dump_folder_name)
-
-    # Locally save params
+    
+    # Get QD algorithm args (creates evaluation function internally)
+    qd_algo_args = get_qd_algo_args(
+        cfg=global_config,
+        dump_folder_name=dump_folder_name
+    )
+    
+    # Save configuration
     dump_input_arguments(qd_algo_args=qd_algo_args, global_config=global_config)
-
-    # QD algorithm execution
+    
+    # Run QD algorithm
     archive_success_len = run_qd_routine(**qd_algo_args)
-
-    # End of running
+    
+    # Finish
     return end_of_run_routine(archive_success_len)
+
+# def main():
+#     """QD-Grasp entry point."""
+
+#     # Initialize arguments
+#     input_args = get_input_arguments()
+#     env = init_grasping_env(env_class=input_args['env_class'], env_kwargs=input_args['env_kwargs'])
+#     global_config = get_global_config(input_args=input_args, env=env)
+
+#     dump_folder_name = init_run_dump_folder(global_config=global_config)
+
+#     qd_algo_args = get_qd_algo_args(cfg=global_config, env=env, dump_folder_name=dump_folder_name)
+
+#     # Locally save params
+#     dump_input_arguments(qd_algo_args=qd_algo_args, global_config=global_config)
+
+#     # QD algorithm execution
+#     archive_success_len = run_qd_routine(**qd_algo_args)
+
+#     # End of running
+#     return end_of_run_routine(archive_success_len)
 
 
 if __name__ == "__main__":

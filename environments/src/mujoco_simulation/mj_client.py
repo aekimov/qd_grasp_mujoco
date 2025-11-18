@@ -32,16 +32,7 @@ class MjClient:
     def open_viewer(self):
         if self.viewer is None:
             self.viewer = mujoco.viewer.launch_passive(self.model, self.data)
-            # self.viewer.cam.lookat[2] += 0.5
-            
-            # Enable visualization of coordinate frames
-            self.viewer.opt.frame = mujoco.mjtFrame.mjFRAME_WORLD  # Show body frames
-            # Alternative options:
-            # mujoco.mjtFrame.mjFRAME_NONE - no frames
-            # mujoco.mjtFrame.mjFRAME_BODY - body frames (recommended)
-            # mujoco.mjtFrame.mjFRAME_GEOM - geometry frames
-            # mujoco.mjtFrame.mjFRAME_SITE - site frames
-            # mujoco.mjtFrame.mjFRAME_WORLD - world frame only
+            # self.viewer.opt.frame = mujoco.mjtFrame.mjFRAME_WORLD  # Show body frames
 
 
     def close(self):
@@ -261,23 +252,6 @@ class MjClient:
                 valid_contacts += 1
         
         return valid_contacts >= min_contacts
-    
-    
-    # def are_bodies_in_contact(self, body_names: list[str], target_body_name: str) -> bool:
-    #     m, d = self.model, self.data
-
-    #     target_bid = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, target_body_name)
-    #     body_ids = [mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, nm) for nm in body_names]
-
-    #     for i in range(d.ncon):
-    #         c = d.contact[i]
-    #         g1, g2 = int(c.geom1), int(c.geom2)
-    #         b1, b2 = int(m.geom_bodyid[g1]), int(m.geom_bodyid[g2])
-
-    #         if ((b1 == target_bid and b2 in body_ids) or
-    #             (b2 == target_bid and b1 in body_ids)):
-    #             return True
-    #     return False
     
     def is_there_overlapping(self) -> bool:
         """Check for penetrating contacts involving the robot hand"""

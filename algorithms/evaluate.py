@@ -311,4 +311,28 @@ def force_gripper_6dof_pose_debug_snippet(gripper_6dof_pose):
     return gripper_6dof_pose
 
 
-# pos="0 0.06 0" quat="0 0 -1 1">
+class ParallelEvaluator:
+    """Picklable evaluator that creates env per worker."""
+    
+    def __init__(self, env_class, env_kwargs, eval_kwargs):
+        self.env_class = env_class
+        self.env_kwargs = env_kwargs
+        self.eval_kwargs = eval_kwargs
+        self._env = None
+        
+        self.__name__ = "ParallelEvaluator" 
+
+    def __call__(self, individual):
+        """Evaluate individual, creating env on first call."""
+        if self._env is None:
+            self._env = self.env_class(**self.env_kwargs)
+            
+        return evaluate_grasp_ind_routine(
+            individual=individual,
+            env=self._env,
+            eval_kwargs=self.eval_kwargs
+        )
+
+def make_evaluation_function(env_class, env_kwargs, eval_kwargs):
+    """Create picklable evaluator."""
+    return ParallelEvaluator(env_class, env_kwargs, eval_kwargs)

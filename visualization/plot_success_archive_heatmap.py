@@ -258,8 +258,8 @@ def display_success_archive_voxels_heatmap(env, all_6dof_pose_data, outcome_arch
             # Clear previous frame's geometry
             mj_client.debug_clear()
             
-            mj_client.draw_search_space_aabb(robot_name="hand_root", object_name="can")
-            mj_client.draw_aabb(robot_name="hand_root", object_name="can")
+            # mj_client.draw_search_space_aabb(robot_name="hand_root", object_name="can")
+            # mj_client.draw_aabb(robot_name="hand_root", object_name="can")
 
             # Draw all voxels
             for contact_pos, fit in zip(all_contact_points, fitnesses):
