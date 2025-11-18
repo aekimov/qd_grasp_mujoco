@@ -1,7 +1,12 @@
 
 import evolutionary_process
 import sys
+# import multiprocessing 
+# multiprocessing.set_start_method('fork', force=True)
 import concurrent.futures
+import os
+
+from algorithms.evaluate import init_worker_env
 
 from utils.args_processor import get_qd_algo_args, get_input_arguments
 from utils.common_tools import get_new_run_name
@@ -109,17 +114,27 @@ def get_global_config(input_args, env_config):
 def run_qd_routine(**qd_algo_args):
     """Run QD algorithm with optional parallelization."""
     
+    env_class = qd_algo_args['env_class']
+    env_kwargs = qd_algo_args['env_kwargs']
+        
     if qd_algo_args['parallelize']:
-        import os
-        n_workers = os.cpu_count() #- 1  # Leave one core for main process
+        n_workers = os.cpu_count()
         
         print(f"Running with {n_workers} parallel workers")
         
-        with concurrent.futures.ProcessPoolExecutor(max_workers=n_workers) as executor:
+        # Prepare worker initialization
+        with concurrent.futures.ProcessPoolExecutor(
+            max_workers=n_workers,
+            initializer=init_worker_env,
+            initargs=(env_class, env_kwargs)
+        ) as executor:
             qd_algo_args['multiproc_pool'] = executor
             archive_success_len = evolutionary_process.run_qd(**qd_algo_args)
     else:
         print("Running in serial mode")
+        # In serial mode, we must manually initialize the global environment 
+        # because the partial function from args_processor expects it to exist.
+        init_worker_env(env_class, env_kwargs)
         archive_success_len = evolutionary_process.run_qd(**qd_algo_args)
     
     return archive_success_len

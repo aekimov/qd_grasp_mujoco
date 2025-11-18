@@ -3,9 +3,9 @@ import argparse
 from functools import partial
 from pathlib import Path
 
-from utils.common_tools import arg_clean_str, wrapped_partial
+from utils.common_tools import arg_clean_str
 
-from algorithms.evaluate import make_evaluation_function
+from algorithms.evaluate import evaluate_individual_on_worker
 
 import environments.src.env_constants as env_consts
 import configs.qd_config as qd_cfg
@@ -252,9 +252,8 @@ def get_qd_algo_args(cfg, dump_folder_name):
 
     nb_offsprings_to_generate = int(pop_size * qd_cfg.OFFSPRING_NB_COEFF)
 
-    eval_func = make_evaluation_function(
-        env_class=cfg['env']['class'],
-        env_kwargs=cfg['env']['kwargs'],
+    eval_func = partial(
+        evaluate_individual_on_worker,
         eval_kwargs=cfg['evaluate']['kwargs']
     )
 
@@ -288,6 +287,11 @@ def get_qd_algo_args(cfg, dump_folder_name):
     args['archive_kwargs'] = init_archive_kwargs(args)
     args['outcome_archive_kwargs'] = init_outcome_archive_kwargs(args)
     args['run_name'] = dump_folder_name
+
+    # Expose env/eval config for proper parallel initialization
+    args['env_class'] = cfg['env']['class']
+    args['env_kwargs'] = cfg['env']['kwargs']
+    args['eval_kwargs'] = cfg['evaluate']['kwargs']
 
     return args
 

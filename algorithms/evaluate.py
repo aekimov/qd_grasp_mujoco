@@ -311,6 +311,27 @@ def force_gripper_6dof_pose_debug_snippet(gripper_6dof_pose):
     return gripper_6dof_pose
 
 
+# -------------------------------------------------------------------------------------------------------------------- #
+#  PARALLELIZATION
+# -------------------------------------------------------------------------------------------------------------------- #
+
+_WORKER_ENV = None
+
+
+def init_worker_env(env_class, env_kwargs):
+    global _WORKER_ENV
+    if _WORKER_ENV is None:
+        _WORKER_ENV = env_class(**env_kwargs)
+
+
+def evaluate_individual_on_worker(individual, eval_kwargs):
+    global _WORKER_ENV
+    # _WORKER_ENV is guaranteed to be initialized if init_worker_env was called via initializer
+    # In case it wasn't (e.g. serial fallback without initializer), we can't easily recover 
+    # without env_class/kwargs, so we assume correct usage.
+    return evaluate_grasp_ind_routine(individual, _WORKER_ENV, eval_kwargs)
+
+
 class ParallelEvaluator:
     """Picklable evaluator that creates env per worker."""
     
@@ -336,3 +357,10 @@ class ParallelEvaluator:
 def make_evaluation_function(env_class, env_kwargs, eval_kwargs):
     """Create picklable evaluator."""
     return ParallelEvaluator(env_class, env_kwargs, eval_kwargs)
+
+# eval_func = make_evaluation_function(
+#     env_class=cfg['env']['class'],
+#     env_kwargs=cfg['env']['kwargs'],
+#     eval_kwargs=cfg['evaluate']['kwargs']
+# )
+    
