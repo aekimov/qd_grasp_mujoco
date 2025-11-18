@@ -173,6 +173,3 @@ class Population:
     def update_individuals(self, fitnesses, b_descriptors, infos):
         """Update individuals with the given fitnesses, bds and infos."""
         self._bds, self._fits, self._infos = b_descriptors, fitnesses, infos
-
-
-

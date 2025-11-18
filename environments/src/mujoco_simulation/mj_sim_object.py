@@ -188,7 +188,7 @@ class MjSimObject:
 
         # Set up contact point sampling
         n_point_mesh_sample = self._get_n_point_mesh_sample()
-        print(f'n_point_mesh_sample={n_point_mesh_sample}')
+        # print(f'n_point_mesh_sample={n_point_mesh_sample}')
         sampled_point_cloud = np.asarray(visual_mesh.sample_points_uniformly(n_point_mesh_sample).points)
         shifted_sampled_point_cloud = self.shift_precise_vertices_point_based_on_inertia_mujoco(
                 mj_client, sampled_point_cloud, name
@@ -196,7 +196,7 @@ class MjSimObject:
         self._uniform_obj_contact_points = shifted_sampled_point_cloud
         self._k_tree_uniform_contact_points = Nearest(n_neighbors=1, metric='minkowski').fit(shifted_sampled_point_cloud)
 
-        print(f"Initialized MuJoCo object '{name}' with {len(precise_vertices_point)} vertices and {len(triangles)} triangles")
+        # print(f"Initialized MuJoCo object '{name}' with {len(precise_vertices_point)} vertices and {len(triangles)} triangles")
 
     def import_point_cloud_from_obj(self, path2obj_point_cloud):
         mesh = o3d.io.read_triangle_mesh(path2obj_point_cloud)
