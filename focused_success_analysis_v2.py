@@ -6,10 +6,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 import pickle
+from datetime import datetime
 import environments.src.robots.mj_shadow_hand_consts as sh_consts
 from run import JOINT_LOCKS
 
-FOLDER_NAMES = ['ycb_chips_can_2025-10-22_21-44']
+FOLDER_NAMES = ['ycb_chips_can_2025-11-19_11-45']
 
 AA_CONFIGS = list(sh_consts.AA_CONFIGURATIONS.keys())
 
@@ -70,6 +71,13 @@ def calculate_success_focused_metrics(data_dict, archive_data):
     successful_fitnesses = fitnesses[is_success]
     robust_fitnesses = fitnesses[is_robust]
     
+    # Extract ALL robust grasps from robust_grasps field
+    all_robust_grasps_count = 0
+    if 'robust_grasps' in archive_data:
+        robust_grasps_array = archive_data['robust_grasps']
+        if robust_grasps_array is not None and len(robust_grasps_array) > 0:
+            all_robust_grasps_count = len(robust_grasps_array)
+    
     metrics = {}
     
     # === SUCCESS-FOCUSED METRICS ===
@@ -81,7 +89,10 @@ def calculate_success_focused_metrics(data_dict, archive_data):
     metrics['total_successful_grasps'] = len(successful_fitnesses)  # Total in archive
     metrics['total_robust_grasps'] = len(robust_fitnesses)  # Robust subset
     
-    # 3. SUCCESS RATES from all evaluations (not just archive)
+    # 3. ALL ROBUST GRASPS COUNT (from robust_grasps field - all evaluations)
+    metrics['all_robust_grasps_count'] = all_robust_grasps_count
+    
+    # 4. SUCCESS RATES from all evaluations (not just archive)
     metrics['success_rate'] = data_dict['success_ratio_hist'][-1] * 100  # % of all evals
     
     # Calculate robust success rate from total evaluations
@@ -94,13 +105,13 @@ def calculate_success_focused_metrics(data_dict, archive_data):
     estimated_total_robust_evals = int(total_successful_evals * robust_ratio_in_archive)
     metrics['robust_success_rate'] = (estimated_total_robust_evals / total_evals) * 100
     
-    # 4. SPATIAL COVERAGE
+    # 5. SPATIAL COVERAGE
     metrics['success_archive_coverage'] = data_dict['success_archive_cvg_hist'][-1] * 100
     
-    # 5. Diversity
+    # 6. Diversity
     metrics['diversity_knn'] = data_dict['success_archive_sparsity_3_hist'][-1]
     
-    # 6. Quality metrics
+    # 7. Quality metrics
     if len(successful_fitnesses) > 0:
         metrics['avg_fitness'] = np.mean(successful_fitnesses)
         metrics['max_fitness'] = np.max(successful_fitnesses)
@@ -108,7 +119,7 @@ def calculate_success_focused_metrics(data_dict, archive_data):
         metrics['avg_fitness'] = 0
         metrics['max_fitness'] = 0
     
-    # 7. Efficiency
+    # 8. Efficiency
     metrics['runtime'] = data_dict['run_time_hist'][-1]
     metrics['n_evaluations'] = data_dict['n_evals_hist'][-1]
     
@@ -197,7 +208,7 @@ def analyze_all_configurations():
         
         # List of metrics to average
         metrics_to_average = [
-            'qd_score', 'total_successful_grasps', 'total_robust_grasps',
+            'qd_score', 'total_successful_grasps', 'total_robust_grasps', 'all_robust_grasps_count',
             'success_rate', 'robust_success_rate', 'success_archive_coverage',
             'diversity_knn', 'avg_fitness', 'max_fitness', 'runtime', 'n_evaluations'
         ]
@@ -228,7 +239,7 @@ def analyze_all_configurations():
     
     return df
 
-def create_success_focused_heatmaps(df, output_dir='.'):
+def create_success_focused_heatmaps(df, output_dir='.', timestamp_str=''):
     """Create heatmaps focused only on success metrics."""
     
     # Success-focused metrics only
@@ -236,9 +247,10 @@ def create_success_focused_heatmaps(df, output_dir='.'):
         ('total_successful_grasps', 'Total Successful Grasps (Archive Count - Averaged)', 'Blues'),
         ('total_robust_grasps', 'Total Robust Grasps (Archive Count - Averaged)', 'Reds'),
         ('qd_score', 'QD-Score (Sum of Fitness - Averaged)', 'viridis'),
+        ('all_robust_grasps_count', 'All Robust Grasps Count (All Evaluations - Averaged)', 'Oranges'),
     ]
     
-    fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+    fig, axes = plt.subplots(1, 4, figsize=(24, 6))
     axes = axes.flatten()
     
     for idx, (metric, title, cmap) in enumerate(metrics_to_plot):
@@ -253,7 +265,7 @@ def create_success_focused_heatmaps(df, output_dir='.'):
         ax = axes[idx]
         
         # Format annotation based on metric type
-        if metric in ['qd_score', 'total_successful_grasps', 'total_robust_grasps']:
+        if metric in ['qd_score', 'total_successful_grasps', 'total_robust_grasps', 'all_robust_grasps_count']:
             fmt = ".0f"  # No decimals for counts
         elif metric in ['success_rate', 'robust_success_rate']:
             fmt = ".1f"  # One decimal for percentages
@@ -274,8 +286,11 @@ def create_success_focused_heatmaps(df, output_dir='.'):
     
     plt.tight_layout()
     
-    # Save heatmap
-    img_path = os.path.join(output_dir, "averaged_success_analysis.png")
+    # Save heatmap with timestamp
+    if timestamp_str:
+        img_path = os.path.join(output_dir, f"averaged_success_analysis_{timestamp_str}.png")
+    else:
+        img_path = os.path.join(output_dir, "averaged_success_analysis.png")
     plt.savefig(img_path, dpi=300, bbox_inches='tight')
     plt.close()
     print(f"[✓] Saved averaged success analysis: {img_path}")
@@ -319,6 +334,9 @@ def main():
     print("🔍 Starting Success-Focused QD Analysis (Multi-Folder Averaging)...")
     print("=" * 80)
     
+    # Generate timestamp for unique filenames
+    timestamp_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    
     # Analyze all configurations
     df = analyze_all_configurations()
     if df is None:
@@ -328,13 +346,13 @@ def main():
     output_dir = "averaged_analysis_results"
     os.makedirs(output_dir, exist_ok=True)
     
-    # Save detailed results
-    csv_path = os.path.join(output_dir, "averaged_success_analysis.csv")
+    # Save detailed results with timestamp
+    csv_path = os.path.join(output_dir, f"averaged_success_analysis_{timestamp_str}.csv")
     df.to_csv(csv_path, index=False)
     print(f"[✓] Saved detailed CSV: {csv_path}")
     
-    # Create success-focused heatmaps
-    create_success_focused_heatmaps(df, output_dir)
+    # Create success-focused heatmaps with timestamp
+    create_success_focused_heatmaps(df, output_dir, timestamp_str)
     
     # Print robust grasp summary
     print_robust_grasp_summary(df)

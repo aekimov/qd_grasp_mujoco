@@ -73,6 +73,13 @@ def calculate_success_focused_metrics(data_dict, archive_data):
     successful_fitnesses = fitnesses[is_success]
     robust_fitnesses = fitnesses[is_robust]
     
+    # Extract ALL robust grasps from robust_grasps field
+    all_robust_grasps = []
+    if 'robust_grasps' in archive_data:
+        robust_grasps_array = archive_data['robust_grasps']
+        if robust_grasps_array is not None and len(robust_grasps_array) > 0:
+            all_robust_grasps = [grasp['fit'] for grasp in robust_grasps_array if isinstance(grasp, dict) and 'fit' in grasp]
+    
     metrics = {}
     
     # === SUCCESS-FOCUSED METRICS ===
@@ -84,7 +91,14 @@ def calculate_success_focused_metrics(data_dict, archive_data):
     metrics['total_successful_grasps'] = len(successful_fitnesses)  # Total in archive
     metrics['total_robust_grasps'] = len(robust_fitnesses)  # Robust subset
     
-    # 3. SUCCESS RATES from all evaluations (not just archive)
+    # 3. ALL ROBUST GRASPS (from robust_grasps field)
+    metrics['all_robust_grasps_count'] = len(all_robust_grasps)
+    if len(all_robust_grasps) > 0:
+        metrics['all_robust_grasps_qd_score'] = np.sum(all_robust_grasps)
+    else:
+        metrics['all_robust_grasps_qd_score'] = 0
+    
+    # 4. SUCCESS RATES from all evaluations (not just archive)
     metrics['success_rate'] = data_dict['success_ratio_hist'][-1] * 100  # % of all evals
     
     # Calculate robust success rate from total evaluations
@@ -97,13 +111,13 @@ def calculate_success_focused_metrics(data_dict, archive_data):
     estimated_total_robust_evals = int(total_successful_evals * robust_ratio_in_archive)
     metrics['robust_success_rate'] = (estimated_total_robust_evals / total_evals) * 100
     
-    # 4. SPATIAL COVERAGE
+    # 5. SPATIAL COVERAGE
     metrics['success_archive_coverage'] = data_dict['success_archive_cvg_hist'][-1] * 100
     
-    # 5. Diversity
+    # 6. Diversity
     metrics['diversity_knn'] = data_dict['success_archive_sparsity_3_hist'][-1]
     
-    # 6. Quality metrics
+    # 7. Quality metrics
     if len(successful_fitnesses) > 0:
         metrics['avg_fitness'] = np.mean(successful_fitnesses)
         metrics['max_fitness'] = np.max(successful_fitnesses)
@@ -111,7 +125,7 @@ def calculate_success_focused_metrics(data_dict, archive_data):
         metrics['avg_fitness'] = 0
         metrics['max_fitness'] = 0
     
-    # 7. Efficiency
+    # 8. Efficiency
     metrics['runtime'] = data_dict['run_time_hist'][-1]
     metrics['n_evaluations'] = data_dict['n_evals_hist'][-1]
     
@@ -149,6 +163,7 @@ def analyze_all_configurations():
             
             print(f"  ✅ Archive: {metrics['total_successful_grasps']} successful, "
                   f"{metrics['total_robust_grasps']} robust, "
+                  f"All Robust: {metrics['all_robust_grasps_count']}, "
                   f"Success Rate: {metrics['success_rate']:.1f}%")
             
         except Exception as e:
@@ -178,7 +193,9 @@ def create_success_focused_heatmaps(df):
         # ('robust_success_rate', 'Robust Success Rate (% of ALL Evaluations)', 'Greens'),
         ('total_successful_grasps', 'Total Successful Grasps (Archive Count)', 'Blues'),
         ('total_robust_grasps', 'Total Robust Grasps (Archive Count)', 'Reds'),
+        ('all_robust_grasps_count', 'All Robust Grasps Count (All Evaluations)', 'Oranges'),
         ('qd_score', 'QD-Score (Sum of Fitness)', 'viridis'),
+        ('all_robust_grasps_qd_score', 'All Robust Grasps QD-Score', 'Purples'),
         # ('diversity_knn', 'Diversity (k-NN Distance)', 'Oranges')
     ]
     
@@ -197,7 +214,8 @@ def create_success_focused_heatmaps(df):
         ax = axes[idx]
         
         # Format annotation based on metric type
-        if metric in ['qd_score', 'total_successful_grasps', 'total_robust_grasps']:
+        if metric in ['qd_score', 'total_successful_grasps', 'total_robust_grasps', 
+                      'all_robust_grasps_count', 'all_robust_grasps_qd_score']:
             fmt = ".0f"  # No decimals for counts
         elif metric in ['success_rate', 'robust_success_rate']:
             fmt = ".1f"  # One decimal for percentages
