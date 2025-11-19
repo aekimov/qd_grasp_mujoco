@@ -10,7 +10,6 @@ from algorithms.archives.novelty_archive import NoveltyArchive
 from algorithms.archives.elite_structured_archive import EliteStructuredArchive
 from algorithms.archives.dummy_archive import DummyArchive
 from algorithms.archives.outcome_archive import OutcomeArchive
-
 from sklearn.cluster import KMeans
 from sklearn.neighbors import NearestNeighbors
 
@@ -86,7 +85,7 @@ def init_archive(archive_type, archive_kwargs):
     return archive_class(**archive_kwargs)
 
 
-def re_evaluate_until_off_is_full_of_valid_inds(pop, off, archive, fixed_attr_dict, timer, **kwargs):
+def re_evaluate_until_off_is_full_of_valid_inds(pop, off, archive, fixed_attr_dict, timer, outcome_archive=None, **kwargs):
     n_targeted_valid_inds = len(off)
     n_evaluated_valid_inds = int(sum(off.are_valid_inds()))
 
@@ -116,6 +115,10 @@ def re_evaluate_until_off_is_full_of_valid_inds(pop, off, archive, fixed_attr_di
             evaluate_fn=kwargs['evaluation_function'], multiproc_pool=kwargs['multiproc_pool']
         )
         additionnal_n_evals += len(valid_finder_off)
+        
+        # Update outcome archive with ALL evaluated individuals (including those from re-evaluation)
+        if outcome_archive is not None:
+            outcome_archive.update(valid_finder_off)
 
         is_there_valid_inds = sum(valid_finder_off.are_valid_inds()) > 0
         if is_there_valid_inds:
@@ -251,7 +254,7 @@ def initialize_pop_and_archive(
     )
 
     archive.fill(pop=pop)
-    outcome_archive.update(pop)
+    outcome_archive.update(pop)  # This now also tracks ALL robust grasps
 
     progression_monitoring.update(
         pop=pop, outcome_archive=outcome_archive, n_evals=n_evals, n_evals_including_invalid=n_evals_including_invalid

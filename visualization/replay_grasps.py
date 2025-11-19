@@ -20,6 +20,8 @@ def arg_parser():
 	parser.add_argument("-i", "--i_ind", help="Index of a specific ind to display.", type=int, default=None)
 	parser.add_argument("-fs", "--fitness-sorted", action="store_true",
 						help="Display grasps from higher to lower fitness.")
+	parser.add_argument("--history", action="store_true", 
+						help="Replay robust grasps from robust_grasps field instead of grid archive.")
 	return parser.parse_args()
 
 
@@ -28,6 +30,7 @@ def get_replay_grasps_kwargs():
 
 	return {
 		'run_folder_path': args.runs,
+		'use_history': args.history,
 		'display_flags': {
 			'only_robust_inds': args.robust,
 			'i_ind2display': args.i_ind,
@@ -181,10 +184,10 @@ def get_all_init_joint_state_genes(individuals, cfg):
 	return all_init_joint_state_genes
 
 
-def get_all_6dof_grasping_data(folder, cfg):
-	individuals = load_all_inds(folder)
-	infos, info_keys = load_all_infos(folder)
-	fitnesses = load_all_fitnesses(folder)
+def get_all_6dof_grasping_data(folder, cfg, use_history=False):
+	individuals = load_all_inds(folder, use_history=use_history)
+	infos, info_keys = load_all_infos(folder, use_history=use_history)
+	fitnesses = load_all_fitnesses(folder, use_history=use_history)
 
 	all_gripper_6dof_pose = get_all_gripper_6dof_pose_from_infos(info_keys=info_keys, infos=infos)
 
@@ -209,7 +212,7 @@ def get_all_6dof_grasping_data(folder, cfg):
 	return all_6dof_pose_data
 
 
-def init_replay_6dof_grasp_poses(run_folder_path, display_flags, display=True, remove_gripper=False):
+def init_replay_6dof_grasp_poses(run_folder_path, display_flags, use_history=False, display=True, remove_gripper=False):
 	# Load run folder
 	folder = get_folder_path_from_str(run_folder_path)
 
@@ -220,12 +223,12 @@ def init_replay_6dof_grasp_poses(run_folder_path, display_flags, display=True, r
 	env = init_env(cfg, display=display, remove_gripper=remove_gripper)
 
 	# Get the 6dof data to replay
-	all_6dof_pose_data = get_all_6dof_grasping_data(folder=folder, cfg=cfg)
+	all_6dof_pose_data = get_all_6dof_grasping_data(folder=folder, cfg=cfg, use_history=use_history)
 	return env, all_6dof_pose_data, display_flags
 
 
-def replay_grasps(run_folder_path, display_flags):
-	env, all_6dof_pose_data, display_flags = init_replay_6dof_grasp_poses(run_folder_path, display_flags)
+def replay_grasps(run_folder_path, display_flags, use_history=False):
+	env, all_6dof_pose_data, display_flags = init_replay_6dof_grasp_poses(run_folder_path, display_flags, use_history=use_history)
 
 	replay_6dof_poses(
 		env=env,

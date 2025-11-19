@@ -85,12 +85,18 @@ def load_run_output_files(folder):
     return run_details, run_infos, cfg
 
 
-def load_all_inds(folder, individuals_id=None):
+def load_all_inds(folder, individuals_id=None, use_history=False):
     if individuals_id is not None:
         ind_file = get_specific_dump_ind_file(folder, id=individuals_id)
     else:
         ind_file = get_last_dump_ind_file(folder)
-    return np.load(ind_file)[SCS_ARCHIVE_INDS_KEY]
+    
+    data = np.load(ind_file, allow_pickle=True)
+    if use_history and 'robust_grasps' in data:
+        robust_grasps = data['robust_grasps']
+        return np.array([g['ind'] for g in robust_grasps])
+    else:
+        return data[SCS_ARCHIVE_INDS_KEY]
 
 
 def load_all_behavior_descriptors(folder):
@@ -98,25 +104,36 @@ def load_all_behavior_descriptors(folder):
     return np.load(ind_file, allow_pickle=True)[SCS_ARCHIVE_BEHAVIOR_KEY]
 
 
-def load_all_fitnesses(folder, individuals_id=None):
+def load_all_fitnesses(folder, individuals_id=None, use_history=False):
 
     if individuals_id is not None:
         ind_file = get_specific_dump_ind_file(folder, id=individuals_id)
     else:
         ind_file = get_last_dump_ind_file(folder)
 
-    return np.load(ind_file, allow_pickle=True)[SCS_ARCHIVE_FITNESS_KEY]
+    data = np.load(ind_file, allow_pickle=True)
+    if use_history and 'robust_grasps' in data:
+        robust_grasps = data['robust_grasps']
+        return np.array([g['fit'] for g in robust_grasps])
+    else:
+        return data[SCS_ARCHIVE_FITNESS_KEY]
 
 
-def load_all_infos(folder, individuals_id=None):
+def load_all_infos(folder, individuals_id=None, use_history=False):
 
     if individuals_id is not None:
         ind_file = get_specific_dump_ind_file(folder, id=individuals_id)
     else:
         ind_file = get_last_dump_ind_file(folder)
 
-    info = np.load(ind_file, allow_pickle=True)[SCS_ARCHIVE_INFOS_KEY]
-    info_keys = np.load(ind_file, allow_pickle=True)[SCS_ARCHIVE_INFO_KEYS_KEY]
+    data = np.load(ind_file, allow_pickle=True)
+    if use_history and 'robust_grasps' in data:
+        robust_grasps = data['robust_grasps']
+        info = np.array([g['info'] for g in robust_grasps])
+    else:
+        info = data[SCS_ARCHIVE_INFOS_KEY]
+    
+    info_keys = data[SCS_ARCHIVE_INFO_KEYS_KEY]
     return info, info_keys
 
 
@@ -199,10 +216,10 @@ def get_all_init_joint_state_genes(individuals, cfg):
     return all_init_joint_state_genes
 
 
-def get_all_6dof_grasping_data(folder, cfg):
-    individuals = load_all_inds(folder)
-    infos, info_keys = load_all_infos(folder)
-    fitnesses = load_all_fitnesses(folder)
+def get_all_6dof_grasping_data(folder, cfg, use_history=False):
+    individuals = load_all_inds(folder, use_history=use_history)
+    infos, info_keys = load_all_infos(folder, use_history=use_history)
+    fitnesses = load_all_fitnesses(folder, use_history=use_history)
 
     all_gripper_6dof_pose = get_all_gripper_6dof_pose_from_infos(info_keys=info_keys, infos=infos)
 

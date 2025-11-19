@@ -68,7 +68,8 @@ def run_qd_core(**kwargs):
         # ------------------------ RE-EVALUATE IF NECESSARY ------------------------ #
         if not kwargs['include_invalid_inds']:
             additionnal_n_evals, run_timeout_flg = re_evaluate_until_off_is_full_of_valid_inds(
-                pop=pop, off=off, archive=archive, fixed_attr_dict=fixed_attr_dict, timer=timer, **kwargs
+                pop=pop, off=off, archive=archive, fixed_attr_dict=fixed_attr_dict, timer=timer, 
+                outcome_archive=outcome_archive, **kwargs
             )
             n_evals_including_invalid += additionnal_n_evals
 
@@ -126,6 +127,12 @@ def run_qd_core(**kwargs):
                 run_name=kwargs['run_name'],
                 curr_neval=progression_monitoring.n_eval,
                 outcome_archive=outcome_archive,
+            )
+            
+            history_archive.export(
+                run_name=kwargs['run_name'],
+                curr_neval=progression_monitoring.n_eval,
+                elapsed_time=timer.get_on_the_fly_time(qd_cfg.QD_RUN_TIME_LABEL)
             )
 
         # --------------------------------- CHECK EVALUATION BUDGET -------------------------------- #
