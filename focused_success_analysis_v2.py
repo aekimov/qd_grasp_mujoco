@@ -10,7 +10,7 @@ from datetime import datetime
 import environments.src.robots.mj_shadow_hand_consts as sh_consts
 from run import JOINT_LOCKS
 
-FOLDER_NAMES = ['ycb_chips_can_2025-11-19_11-45']
+FOLDER_NAMES = ['ycb_chips_can_2025-11-19_21-53']
 
 AA_CONFIGS = list(sh_consts.AA_CONFIGURATIONS.keys())
 

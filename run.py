@@ -44,7 +44,7 @@ def run_test(joint_lock, aa_config=None):
     folder_parts = [joint_lock]
     cmd = [
         "python", "run_qd_grasp.py",
-        "-a", "contact_me_scs",
+        "-a", "contact_cma_mae",
         "-r", "shadow",
         "-nbr", str(NBR),
         "-o", OBJ,
