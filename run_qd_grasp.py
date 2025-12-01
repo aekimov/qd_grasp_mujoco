@@ -175,6 +175,11 @@ def extract_env_config(env_class, env_kwargs):
 def main():
     """QD-Grasp entry point - clean and simple!"""
     
+    # Optional: Set random seed for reproducibility
+    # Uncomment the lines below to make runs reproducible:
+    # from set_random_seed import set_seed
+    # set_seed(42)  # Use any integer you want
+    
     # Get arguments
     input_args = get_input_arguments()
     

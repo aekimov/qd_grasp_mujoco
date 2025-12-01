@@ -44,6 +44,9 @@ def run_qd_core(**kwargs):
 
     while do_iterate_gen:
         gen += 1
+        print(f"\n{'='*80}")
+        print(f"GENERATION {gen}")
+        print(f"{'='*80}")
 
         # -------------------------------------- GENERATE OFFPRING ----------------------------------- #
 
@@ -99,7 +102,16 @@ def run_qd_core(**kwargs):
 
         # --------------------------------------- UPDATE ARCHIVE ----------------------------------- #
 
+        archive_size_before = len(archive)
         fill_archive_routine(archive=archive, off=off)
+        archive_size_after = len(archive)
+        new_cells_added = archive_size_after - archive_size_before
+        
+        n_successful_in_gen = int(sum(off.infos[:, 0]))  # IS_SUCCESS_KEY_ID = 0
+        print(f"\n[GEN {gen} SUMMARY]")
+        print(f"  Successful grasps this generation: {n_successful_in_gen}/{len(off)}")
+        print(f"  Archive size: {archive_size_after} cells (+{new_cells_added} new)")
+        print(f"  Total evaluations so far: {progression_monitoring.n_eval}/{kwargs['n_budget_rollouts']}")
 
         # -------------------------------- NEXT GENERATION PARENTS --------------------------------- #
 

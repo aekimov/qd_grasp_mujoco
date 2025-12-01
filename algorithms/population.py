@@ -114,6 +114,8 @@ class Population:
             high=qd_cfg.GENOTYPE_MAX_VAL,
             size=(self._len_pop, self._len_genotype)
         )
+        print(f"\n[INIT] Generated {self._len_pop} random genomes (shape: {self._inds.shape})")
+        print(f"[INIT] First 3 genomes:\n{self._inds[:3]}")
 
     def set_inds(self, inds):
         self._inds = inds.copy()

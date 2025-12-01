@@ -1,0 +1,10 @@
+Evaluation function: evaluate_individual_on_worker
+Genotype length (genotype_len): 7
+Algorithm variant (qd_method): CMA_MAE_CONTACT_CPF
+Population size (pop_size): 1000
+Max number of individuals in the archive (archive_limit_size): 25000
+Archive removal strategy when max size is reached (archive_limit_strat): RANDOM
+Mutation flag (mut_strat): GAUSS
+Number of generated offspring per generation (nb_offsprings_to_generate): 1000
+Novelty required flag (is_novelty_required): false
+Targeted object: ycb_chips_can

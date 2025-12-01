@@ -33,6 +33,8 @@ def select_offspring_standard(pop, pop_size, archive, select_off_strat):
 
     elif select_off_strat == qd_cfg.SelectOffspringStrategy.SUCCESS_BASED_FROM_STRUCTURED_ARCHIVE:
         off_inds = archive.select_success_based(n_sample=pop_size, duplicate_scs_inds=False)
+        # n_successful = len(archive.get_successful_inds())
+        # print(f"[SELECT] Strategy: SUCCESS_BASED | Archive size: {len(archive)} | Successful grasps: {n_successful}")
 
     elif select_off_strat == qd_cfg.SelectOffspringStrategy.SUCCESS_BASED_FROM_STRUCTURED_ARCHIVE_WITH_DUPLICATES:
         off_inds = archive.select_success_based(n_sample=pop_size, duplicate_scs_inds=True)
@@ -154,12 +156,16 @@ def re_evaluate_until_pop_is_full_of_valid_inds(pop, pop_size, genotype_len, sig
         valid_fits += pop.fits[pop.are_valid_inds()].tolist()
         valid_infos += pop.infos[pop.are_valid_inds()].tolist()
 
+    batch_num = 0
     while n_evaluated_valid_inds < n_targeted_valid_inds and not run_timeout_flg:
-        #print('(init) n_evaluated_valid_inds=', n_evaluated_valid_inds)
+        batch_num += 1
         valid_finder_pop = Population(len_pop=pop_size, len_genotype=genotype_len, sigma_mut=sigma_mut)
         valid_finder_pop.init_inds()
         valid_finder_pop.evaluate(evaluate_fn=evaluate_fn, multiproc_pool=multiproc_pool)
         additionnal_n_evals += len(valid_finder_pop)
+        
+        n_valid_in_batch = int(sum(valid_finder_pop.are_valid_inds()))
+        print(f"         Batch {batch_num}: Found {n_valid_in_batch}/{pop_size} valid grasps. Total collected: {n_evaluated_valid_inds + n_valid_in_batch}/{n_targeted_valid_inds}")
 
         is_there_valid_inds = sum(valid_finder_pop.are_valid_inds()) > 0
         if is_there_valid_inds:
@@ -193,11 +199,18 @@ def initialize_evo_process_from_scratch(
         archive,
 ):
     pop.init_inds()
+    print(f"\n[EVAL] Evaluating initial population of {len(pop)} individuals...")
     pop.evaluate(evaluate_fn=evaluate_fn, multiproc_pool=multiproc_pool)
+    n_valid_initial = int(sum(pop.are_valid_inds()))
+    n_invalid_initial = len(pop) - n_valid_initial
+    print(f"[EVAL] Initial evaluation complete.")
+    print(f"       Valid grasps: {n_valid_initial}/{len(pop)} | Invalid (overlapping): {n_invalid_initial}/{len(pop)}")
+    print(f"       First 5 contact points:\n{pop.bds[:5]}")
     n_evals = n_evals_including_invalid = len(pop)
     run_timeout_flg = is_running_timeout(timer=timer, label=qd_cfg.QD_RUN_TIME_LABEL)
 
     if not include_invalid_inds:
+        print(f"[REFILL] Need to collect {len(pop)} valid grasps. Generating more batches...")
         additionnal_n_evals, run_timeout_flg = re_evaluate_until_pop_is_full_of_valid_inds(
             pop=pop,
             pop_size=pop_size,
@@ -208,6 +221,7 @@ def initialize_evo_process_from_scratch(
             timer=timer
         )
         n_evals_including_invalid += additionnal_n_evals
+        print(f"[REFILL] Complete! Collected 500 valid grasps after {n_evals_including_invalid} total evaluations.")
 
         if run_timeout_flg:
             print(f'Timeout during pop init. End of init routine then exit.')
@@ -255,6 +269,10 @@ def initialize_pop_and_archive(
 
     archive.fill(pop=pop)
     outcome_archive.update(pop)  # This now also tracks ALL robust grasps
+    
+    print(f"\n[ARCHIVE] Filled archive with {len(pop)} grasps")
+    print(f"          Archive now contains: {len(archive)} unique cells (out of {archive.max_size} possible)")
+    print(f"          Successful grasps in archive: {len(archive.get_successful_inds())}")
 
     progression_monitoring.update(
         pop=pop, outcome_archive=outcome_archive, n_evals=n_evals, n_evals_including_invalid=n_evals_including_invalid
