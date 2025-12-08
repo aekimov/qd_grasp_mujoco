@@ -10,25 +10,25 @@ JOINT_LOCKS = [
     "none",
 
     # Single finger locking
-    # "lock_index",
-    # "lock_middle",
-    # "lock_ring",
-    # "lock_little",
+    "lock_index",
+    "lock_middle",
+    "lock_ring",
+    "lock_little",
     # "lock_thumb",
 
     # Two finger locking
-    # "lock_ring_little",
-    # "lock_middle_little",    
-    # "lock_middle_ring",
-    # "lock_index_little",
-    # "lock_index_ring",
-    # "lock_index_middle",
+    "lock_ring_little",
+    "lock_middle_little",    
+    "lock_middle_ring",
+    "lock_index_little",
+    "lock_index_ring",
+    "lock_index_middle",
 
     # Three finger locking
     "lock_middle_ring_little",
-    # "lock_index_ring_little",
-    # "lock_index_middle_little",
-    # "lock_index_middle_ring"
+    "lock_index_ring_little",
+    "lock_index_middle_little",
+    "lock_index_middle_ring"
 ]
 
 AA_CONFIGS = [key for key in sh_consts.AA_CONFIGURATIONS.keys()] # if key != 'default'

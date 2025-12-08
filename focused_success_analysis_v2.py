@@ -10,7 +10,33 @@ from datetime import datetime
 import environments.src.robots.mj_shadow_hand_consts as sh_consts
 from run import JOINT_LOCKS
 
-FOLDER_NAMES = ['ycb_chips_can_2025-11-30_15-53']
+FOLDER_NAMES = [
+    'ycb_chips_can_2025-12-01_06-38', 
+    'ycb_chips_can_2025-12-01_08-38',
+    'ycb_chips_can_2025-12-01_20-21',
+    'ycb_chips_can_2025-12-01_22-23',
+    'ycb_chips_can_2025-12-02_00-28',
+    'ycb_chips_can_2025-12-02_02-40',
+    'ycb_chips_can_2025-12-02_04-43',
+    'ycb_chips_can_2025-12-02_19-07',
+    'ycb_chips_can_2025-12-02_21-10',
+    'ycb_chips_can_2025-12-02_23-13',
+    'ycb_chips_can_2025-12-03_01-18',
+    'ycb_chips_can_2025-12-03_03-21',
+    'ycb_chips_can_2025-12-03_09-51',
+    'ycb_chips_can_2025-12-03_12-10',
+    'ycb_chips_can_2025-12-03_14-26',
+    'ycb_chips_can_2025-12-03_16-45',
+    'ycb_chips_can_2025-12-03_19-06',
+    'ycb_chips_can_2025-12-03_21-43',
+    'ycb_chips_can_2025-12-04_00-03',
+    'ycb_chips_can_2025-12-04_02-13',
+    'ycb_chips_can_2025-12-04_07-47',
+    'ycb_chips_can_2025-12-04_10-01',
+    'ycb_chips_can_2025-12-04_12-14',
+    'ycb_chips_can_2025-12-04_14-31',
+    'ycb_chips_can_2025-12-04_16-47'
+    ]
 
 AA_CONFIGS = list(sh_consts.AA_CONFIGURATIONS.keys())
 
