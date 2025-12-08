@@ -6,6 +6,10 @@ runs/
 tmp/
 .idea
 
+# Large archive files
+*.zip
+cylinder_25x20k.zip
+
 
 
 
